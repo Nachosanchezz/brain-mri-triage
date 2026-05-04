@@ -9,12 +9,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
-try:
-    from .base_preprocessing import DEFAULT_OUTPUT_DIR, PreprocessingConfig, scan_processed, write_preprocessing_summary
-except ImportError:
-    from base_preprocessing import DEFAULT_OUTPUT_DIR, PreprocessingConfig, scan_processed, write_preprocessing_summary
+
+PREPROCESSING_DIR = Path(__file__).resolve().parents[1]
+if str(PREPROCESSING_DIR) not in sys.path:
+    sys.path.insert(0, str(PREPROCESSING_DIR))
+
+from base_preprocessing import DEFAULT_OUTPUT_DIR, PreprocessingConfig, scan_processed, write_preprocessing_summary
 
 
 def parse_args() -> argparse.Namespace:
