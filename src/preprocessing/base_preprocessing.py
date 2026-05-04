@@ -271,12 +271,13 @@ def infer_label_from_path(path: Path, files: list[str]) -> int | None:
 
 
 def scan_processed(output_root: Path = DEFAULT_OUTPUT_DIR) -> dict:
-    output_root = Path(output_root)
+    output_root = Path(output_root).resolve()
     by_dataset: dict[str, dict] = {}
     by_output_dir: dict[str, int] = {}
     label_counts = {"0": 0, "1": 0, "unknown": 0}
 
     for path in sorted(output_root.rglob("*.npz")):
+        relative_path = path.relative_to(output_root).as_posix()
         rel_parent = str(path.parent.relative_to(output_root))
         by_output_dir[rel_parent] = by_output_dir.get(rel_parent, 0) + 1
 
@@ -295,10 +296,13 @@ def scan_processed(output_root: Path = DEFAULT_OUTPUT_DIR) -> dict:
                 "total": 0,
                 "labels": {"0": 0, "1": 0, "unknown": 0},
                 "output_dirs": {},
+                "examples": [],
             },
         )
         ds_info["total"] += 1
         ds_info["output_dirs"][rel_parent] = ds_info["output_dirs"].get(rel_parent, 0) + 1
+        if len(ds_info["examples"]) < 5:
+            ds_info["examples"].append(relative_path)
 
         label_key = str(label) if label in {0, 1} else "unknown"
         ds_info["labels"][label_key] += 1
