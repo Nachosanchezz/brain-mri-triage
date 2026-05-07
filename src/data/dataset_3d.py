@@ -205,4 +205,4 @@ class BrainMRI3DDataset(Dataset):
         volume = np.stack([t1, t2], axis=0)
         volume = self._augment(volume)
 
-        return torch.from_numpy(volume.copy()), torch.tensor(label, dtype=torch.long)
+        return torch.from_numpy(volume.copy()), torch.tensor(label, dtype=torch.float32)
