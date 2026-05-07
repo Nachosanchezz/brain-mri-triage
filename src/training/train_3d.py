@@ -1,0 +1,339 @@
+"""
+train_3d.py
+-----------
+Entrenamiento de CNN 3D para clasificacion tumor/no tumor.
+
+Guarda:
+  - outputs/checkpoints/cnn3d_best.pt
+  - outputs/checkpoints/cnn3d_history.json
+  - outputs/plots/cnn3d_curves.png
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import yaml
+from torch import nn
+from torch.utils.data import DataLoader
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from src.data.dataset_3d import BrainMRI3DDataset, SPLITS_FILE, create_splits, load_splits
+from src.models.cnn3d import build_cnn3d
+
+
+DEFAULT_CONFIG = REPO_ROOT / "configs" / "train_3d.yaml"
+
+
+def load_config(path: Path) -> dict:
+    with open(path, encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def parse_shape(value: list[int] | tuple[int, int, int] | None) -> tuple[int, int, int] | None:
+    if value is None:
+        return None
+    if len(value) != 3:
+        raise ValueError("crop_shape debe tener 3 enteros")
+    return tuple(int(v) for v in value)
+
+
+def make_loaders(config: dict) -> tuple[DataLoader, DataLoader, DataLoader]:
+    data_cfg = config["data"]
+    split_cfg = data_cfg.get("splits", {})
+
+    if not SPLITS_FILE.exists() or data_cfg.get("recreate_splits", False):
+        create_splits(
+            seed=int(data_cfg.get("seed", 42)),
+            train_ratio=float(split_cfg.get("train_ratio", 0.70)),
+            val_ratio=float(split_cfg.get("val_ratio", 0.15)),
+        )
+
+    splits = load_splits()
+    crop_shape = parse_shape(data_cfg.get("crop_shape", [128, 160, 128]))
+
+    train_ds = BrainMRI3DDataset(
+        splits["train"],
+        crop_shape=crop_shape,
+        random_crop=bool(data_cfg.get("random_crop_train", True)),
+        augment=bool(data_cfg.get("augment_train", True)),
+        seed=int(data_cfg.get("seed", 42)),
+    )
+    val_ds = BrainMRI3DDataset(splits["val"], crop_shape=crop_shape, random_crop=False, augment=False)
+    test_ds = BrainMRI3DDataset(splits["test"], crop_shape=crop_shape, random_crop=False, augment=False)
+
+    loader_kwargs = {
+        "batch_size": int(data_cfg.get("batch_size", 1)),
+        "num_workers": int(data_cfg.get("num_workers", 0)),
+        "pin_memory": torch.cuda.is_available(),
+    }
+
+    train_loader = DataLoader(train_ds, shuffle=True, **loader_kwargs)
+    val_loader = DataLoader(val_ds, shuffle=False, **loader_kwargs)
+    test_loader = DataLoader(test_ds, shuffle=False, **loader_kwargs)
+    return train_loader, val_loader, test_loader
+
+
+def infer_pos_weight(loader: DataLoader) -> float:
+    labels = []
+    for path in loader.dataset.file_paths:
+        with np.load(path) as sample:
+            labels.append(int(sample["label"]))
+
+    n_neg = labels.count(0)
+    n_pos = labels.count(1)
+    pos_weight = n_neg / n_pos if n_pos else 1.0
+    print(f"Class counts train: [no tumor={n_neg}, tumor={n_pos}] -> pos_weight={pos_weight:.4f}")
+    return pos_weight
+
+
+def binary_auc(y_true: list[int], y_score: list[float]) -> float:
+    labels = np.asarray(y_true, dtype=np.int64)
+    scores = np.asarray(y_score, dtype=np.float64)
+    n_pos = int((labels == 1).sum())
+    n_neg = int((labels == 0).sum())
+    if n_pos == 0 or n_neg == 0:
+        return float("nan")
+
+    order = np.argsort(scores)
+    sorted_scores = scores[order]
+    ranks = np.empty(len(scores), dtype=np.float64)
+    start = 0
+    while start < len(scores):
+        end = start + 1
+        while end < len(scores) and sorted_scores[end] == sorted_scores[start]:
+            end += 1
+        avg_rank = (start + 1 + end) / 2.0
+        ranks[order[start:end]] = avg_rank
+        start = end
+
+    sum_pos_ranks = float(ranks[labels == 1].sum())
+    return (sum_pos_ranks - n_pos * (n_pos + 1) / 2.0) / (n_pos * n_neg)
+
+
+def binary_metrics(y_true: list[int], y_score: list[float], threshold: float = 0.5) -> dict[str, float]:
+    y_pred = [int(score >= threshold) for score in y_score]
+    tp = sum(int(pred == 1 and true == 1) for pred, true in zip(y_pred, y_true))
+    tn = sum(int(pred == 0 and true == 0) for pred, true in zip(y_pred, y_true))
+    fp = sum(int(pred == 1 and true == 0) for pred, true in zip(y_pred, y_true))
+    fn = sum(int(pred == 0 and true == 1) for pred, true in zip(y_pred, y_true))
+
+    total = tp + tn + fp + fn
+    accuracy = (tp + tn) / total if total else 0.0
+    sensitivity = tp / (tp + fn) if (tp + fn) else float("nan")
+    specificity = tn / (tn + fp) if (tn + fp) else float("nan")
+
+    return {
+        "accuracy": accuracy,
+        "auc": binary_auc(y_true, y_score),
+        "sensitivity": sensitivity,
+        "specificity": specificity,
+    }
+
+
+def run_epoch(
+    model: nn.Module,
+    loader: DataLoader,
+    criterion: nn.Module,
+    device: torch.device,
+    optimizer: torch.optim.Optimizer | None = None,
+    scaler: torch.amp.GradScaler | None = None,
+    use_amp: bool = False,
+) -> dict[str, float]:
+    is_train = optimizer is not None
+    model.train(is_train)
+
+    losses: list[float] = []
+    y_true: list[int] = []
+    y_score: list[float] = []
+
+    for volumes, labels in loader:
+        volumes = volumes.to(device, non_blocking=True)
+        labels = labels.to(device, non_blocking=True).float()
+
+        with torch.set_grad_enabled(is_train):
+            with torch.amp.autocast(device_type=device.type, enabled=use_amp):
+                logits = model(volumes)
+                loss = criterion(logits, labels)
+
+            if is_train:
+                optimizer.zero_grad(set_to_none=True)
+                if scaler is not None and use_amp:
+                    scaler.scale(loss).backward()
+                    scaler.step(optimizer)
+                    scaler.update()
+                else:
+                    loss.backward()
+                    optimizer.step()
+
+        losses.append(float(loss.detach().cpu()))
+        scores = torch.sigmoid(logits).detach().cpu().tolist()
+        y_score.extend(float(score) for score in scores)
+        y_true.extend(int(label) for label in labels.detach().cpu().tolist())
+
+    metrics = binary_metrics(y_true, y_score)
+
+    return {
+        "loss": sum(losses) / max(len(losses), 1),
+        **metrics,
+    }
+
+
+def save_curves(history: list[dict], output_path: Path) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    epochs = [row["epoch"] for row in history]
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+    axes[0].plot(epochs, [row["train_loss"] for row in history], label="train")
+    axes[0].plot(epochs, [row["val_loss"] for row in history], label="val")
+    axes[0].set_title("Loss")
+    axes[0].set_xlabel("Epoch")
+    axes[0].legend()
+    axes[0].grid(alpha=0.3)
+
+    axes[1].plot(epochs, [row["train_accuracy"] for row in history], label="train")
+    axes[1].plot(epochs, [row["val_accuracy"] for row in history], label="val")
+    axes[1].set_title("Accuracy")
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylim(0, 1)
+    axes[1].legend()
+    axes[1].grid(alpha=0.3)
+
+    axes[2].plot(epochs, [row["train_auc"] for row in history], label="train")
+    axes[2].plot(epochs, [row["val_auc"] for row in history], label="val")
+    axes[2].set_title("AUC")
+    axes[2].set_xlabel("Epoch")
+    axes[2].set_ylim(0, 1)
+    axes[2].legend()
+    axes[2].grid(alpha=0.3)
+
+    plt.tight_layout()
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Entrena una CNN 3D para brain MRI triage.")
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    args = parser.parse_args()
+
+    config = load_config(args.config)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Device: {device}")
+
+    train_loader, val_loader, test_loader = make_loaders(config)
+    print(f"Batches train/val/test: {len(train_loader)}/{len(val_loader)}/{len(test_loader)}")
+
+    model_cfg = config["model"]
+    model = build_cnn3d(
+        in_channels=int(model_cfg.get("in_channels", 2)),
+        n_classes=int(model_cfg.get("n_classes", 1)),
+        base_channels=int(model_cfg.get("base_channels", 12)),
+        dropout=float(model_cfg.get("dropout", 0.25)),
+    ).to(device)
+
+    training_cfg = config["training"]
+    pos_weight = training_cfg.get("pos_weight", training_cfg.get("class_weights"))
+    if pos_weight == "auto":
+        pos_weight = infer_pos_weight(train_loader)
+    pos_weight_tensor = torch.tensor(float(pos_weight), dtype=torch.float32, device=device) if pos_weight else None
+    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=float(training_cfg.get("lr", 1e-4)),
+        weight_decay=float(training_cfg.get("weight_decay", 1e-4)),
+    )
+
+    use_amp = bool(training_cfg.get("amp", True)) and device.type == "cuda"
+    scaler = torch.amp.GradScaler(enabled=use_amp)
+
+    checkpoint_dir = REPO_ROOT / config["paths"].get("checkpoint_dir", "outputs/checkpoints")
+    plots_dir = REPO_ROOT / config["paths"].get("plots_dir", "outputs/plots")
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    plots_dir.mkdir(parents=True, exist_ok=True)
+
+    best_path = checkpoint_dir / "cnn3d_best.pt"
+    history_path = checkpoint_dir / "cnn3d_history.json"
+    curves_path = plots_dir / "cnn3d_curves.png"
+
+    history: list[dict] = []
+    best_val_loss = float("inf")
+    patience = int(training_cfg.get("patience", 8))
+    epochs_without_improvement = 0
+
+    for epoch in range(1, int(training_cfg.get("n_epochs", 30)) + 1):
+        train_metrics = run_epoch(model, train_loader, criterion, device, optimizer, scaler, use_amp)
+        val_metrics = run_epoch(model, val_loader, criterion, device, optimizer=None, scaler=None, use_amp=use_amp)
+
+        row = {
+            "epoch": epoch,
+            "train_loss": train_metrics["loss"],
+            "train_accuracy": train_metrics["accuracy"],
+            "train_auc": train_metrics["auc"],
+            "train_sensitivity": train_metrics["sensitivity"],
+            "train_specificity": train_metrics["specificity"],
+            "val_loss": val_metrics["loss"],
+            "val_accuracy": val_metrics["accuracy"],
+            "val_auc": val_metrics["auc"],
+            "val_sensitivity": val_metrics["sensitivity"],
+            "val_specificity": val_metrics["specificity"],
+        }
+        history.append(row)
+
+        print(
+            f"Epoch {epoch:03d} | "
+            f"train loss={row['train_loss']:.4f} acc={row['train_accuracy']:.4f} auc={row['train_auc']:.4f} | "
+            f"val loss={row['val_loss']:.4f} acc={row['val_accuracy']:.4f} auc={row['val_auc']:.4f} "
+            f"sen={row['val_sensitivity']:.4f} spe={row['val_specificity']:.4f}"
+        )
+
+        with open(history_path, "w", encoding="utf-8") as f:
+            json.dump(history, f, indent=2)
+        save_curves(history, curves_path)
+
+        if row["val_loss"] < best_val_loss:
+            best_val_loss = row["val_loss"]
+            epochs_without_improvement = 0
+            torch.save(
+                {
+                    "model_state_dict": model.state_dict(),
+                    "config": config,
+                    "epoch": epoch,
+                    "best_val_loss": best_val_loss,
+                },
+                best_path,
+            )
+            print(f"  Nuevo mejor checkpoint: {best_path}")
+        else:
+            epochs_without_improvement += 1
+            if epochs_without_improvement >= patience:
+                print(f"Early stopping tras {patience} epocas sin mejora.")
+                break
+
+    checkpoint = torch.load(best_path, map_location=device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    test_metrics = run_epoch(model, test_loader, criterion, device, optimizer=None, scaler=None, use_amp=use_amp)
+    print(
+        f"Test | loss={test_metrics['loss']:.4f} acc={test_metrics['accuracy']:.4f} "
+        f"auc={test_metrics['auc']:.4f} sen={test_metrics['sensitivity']:.4f} "
+        f"spe={test_metrics['specificity']:.4f}"
+    )
+    print(f"Curvas guardadas en: {curves_path}")
+    print(f"Historia guardada en: {history_path}")
+
+
+if __name__ == "__main__":
+    main()

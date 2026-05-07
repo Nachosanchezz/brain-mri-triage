@@ -1,0 +1,32 @@
+model:
+  name: cnn3d
+  in_channels: 2
+  # Salida binaria: 1 logit. Sigmoid(logit) = probabilidad de tumor.
+  n_classes: 1
+  base_channels: 12
+  dropout: 0.25
+
+data:
+  batch_size: 1
+  num_workers: 0
+  seed: 42
+  recreate_splits: true
+  crop_shape: [128, 160, 128]
+  random_crop_train: true
+  augment_train: true
+  splits:
+    train_ratio: 0.70
+    val_ratio: 0.15
+
+training:
+  n_epochs: 30
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  patience: 8
+  amp: true
+  # Peso de la clase positiva para BCEWithLogitsLoss: n_negativos / n_positivos.
+  pos_weight: auto
+
+paths:
+  checkpoint_dir: outputs/checkpoints
+  plots_dir: outputs/plots
