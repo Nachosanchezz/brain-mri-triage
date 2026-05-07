@@ -38,6 +38,18 @@ from src.models.cnn3d import build_cnn3d
 DEFAULT_CONFIG = REPO_ROOT / "configs" / "train_3d.yaml"
 
 
+def configure_gpu_performance(config: dict, device: torch.device) -> dict:
+    perf_cfg = config.get("performance", {})
+    if device.type != "cuda":
+        return perf_cfg
+
+    torch.backends.cudnn.benchmark = bool(perf_cfg.get("cudnn_benchmark", True))
+    torch.backends.cuda.matmul.allow_tf32 = bool(perf_cfg.get("allow_tf32", True))
+    torch.backends.cudnn.allow_tf32 = bool(perf_cfg.get("allow_tf32", True))
+    torch.set_float32_matmul_precision(str(perf_cfg.get("matmul_precision", "high")))
+    return perf_cfg
+
+
 def load_config(path: Path) -> dict:
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
@@ -80,6 +92,9 @@ def make_loaders(config: dict) -> tuple[DataLoader, DataLoader, DataLoader]:
         "num_workers": int(data_cfg.get("num_workers", 0)),
         "pin_memory": torch.cuda.is_available(),
     }
+    if loader_kwargs["num_workers"] > 0:
+        loader_kwargs["persistent_workers"] = bool(data_cfg.get("persistent_workers", True))
+        loader_kwargs["prefetch_factor"] = int(data_cfg.get("prefetch_factor", 2))
 
     train_loader = DataLoader(train_ds, shuffle=True, **loader_kwargs)
     val_loader = DataLoader(val_ds, shuffle=False, **loader_kwargs)
@@ -152,6 +167,7 @@ def run_epoch(
     optimizer: torch.optim.Optimizer | None = None,
     scaler: torch.amp.GradScaler | None = None,
     use_amp: bool = False,
+    channels_last_3d: bool = False,
 ) -> dict[str, float]:
     is_train = optimizer is not None
     model.train(is_train)
@@ -162,6 +178,8 @@ def run_epoch(
 
     for volumes, labels in loader:
         volumes = volumes.to(device, non_blocking=True)
+        if channels_last_3d:
+            volumes = volumes.contiguous(memory_format=torch.channels_last_3d)
         labels = labels.to(device, non_blocking=True).float()
 
         with torch.set_grad_enabled(is_train):
@@ -232,7 +250,11 @@ def main() -> None:
 
     config = load_config(args.config)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    perf_cfg = configure_gpu_performance(config, device)
+    channels_last_3d = device.type == "cuda" and bool(perf_cfg.get("channels_last_3d", True))
     print(f"Device: {device}")
+    if device.type == "cuda":
+        print(f"GPU: {torch.cuda.get_device_name(0)}")
 
     train_loader, val_loader, test_loader = make_loaders(config)
     print(f"Batches train/val/test: {len(train_loader)}/{len(val_loader)}/{len(test_loader)}")
@@ -244,6 +266,10 @@ def main() -> None:
         base_channels=int(model_cfg.get("base_channels", 12)),
         dropout=float(model_cfg.get("dropout", 0.25)),
     ).to(device)
+    if channels_last_3d:
+        model = model.to(memory_format=torch.channels_last_3d)
+    if device.type == "cuda" and bool(perf_cfg.get("compile", False)):
+        model = torch.compile(model)
 
     training_cfg = config["training"]
     pos_weight = training_cfg.get("pos_weight", training_cfg.get("class_weights"))
@@ -275,8 +301,26 @@ def main() -> None:
     epochs_without_improvement = 0
 
     for epoch in range(1, int(training_cfg.get("n_epochs", 30)) + 1):
-        train_metrics = run_epoch(model, train_loader, criterion, device, optimizer, scaler, use_amp)
-        val_metrics = run_epoch(model, val_loader, criterion, device, optimizer=None, scaler=None, use_amp=use_amp)
+        train_metrics = run_epoch(
+            model,
+            train_loader,
+            criterion,
+            device,
+            optimizer,
+            scaler,
+            use_amp,
+            channels_last_3d,
+        )
+        val_metrics = run_epoch(
+            model,
+            val_loader,
+            criterion,
+            device,
+            optimizer=None,
+            scaler=None,
+            use_amp=use_amp,
+            channels_last_3d=channels_last_3d,
+        )
 
         row = {
             "epoch": epoch,
@@ -325,7 +369,16 @@ def main() -> None:
 
     checkpoint = torch.load(best_path, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
-    test_metrics = run_epoch(model, test_loader, criterion, device, optimizer=None, scaler=None, use_amp=use_amp)
+    test_metrics = run_epoch(
+        model,
+        test_loader,
+        criterion,
+        device,
+        optimizer=None,
+        scaler=None,
+        use_amp=use_amp,
+        channels_last_3d=channels_last_3d,
+    )
     print(
         f"Test | loss={test_metrics['loss']:.4f} acc={test_metrics['accuracy']:.4f} "
         f"auc={test_metrics['auc']:.4f} sen={test_metrics['sensitivity']:.4f} "

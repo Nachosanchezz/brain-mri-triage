@@ -8,7 +8,10 @@ model:
 
 data:
   batch_size: 1
+  # Sube a 2-4 si la GPU se queda esperando datos. En Windows, 0 es lo mas estable.
   num_workers: 0
+  persistent_workers: true
+  prefetch_factor: 2
   seed: 42
   recreate_splits: true
   crop_shape: [128, 160, 128]
@@ -26,6 +29,17 @@ training:
   amp: true
   # Peso de la clase positiva para BCEWithLogitsLoss: n_negativos / n_positivos.
   pos_weight: auto
+
+performance:
+  # Acelera convoluciones 3D cuando el tamano de entrada es estable.
+  cudnn_benchmark: true
+  # TF32 acelera Ampere/Ada con una pequena perdida numerica aceptable en entrenamiento.
+  allow_tf32: true
+  matmul_precision: high
+  # Formato de memoria optimizado para Conv3D en CUDA.
+  channels_last_3d: true
+  # Puede acelerar, pero tarda al arrancar y en Windows a veces no compensa.
+  compile: false
 
 paths:
   checkpoint_dir: outputs/checkpoints
