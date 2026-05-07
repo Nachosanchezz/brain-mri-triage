@@ -130,10 +130,19 @@ def crop_or_pad(data: np.ndarray, target_shape: tuple[int, int, int]) -> np.ndar
 
 
 def normalize_intensity(data: np.ndarray, source_path: Path | str = "") -> np.ndarray:
-    mask = data > 0
-    if mask.sum() == 0:
-        print(f"  WARNING: volumen sin voxels no-cero ({source_path}), devuelto sin normalizar")
+    positive = data[data > 0]
+    if positive.size == 0:
+        print(f"  WARNING: volumen sin voxels positivos ({source_path}), devuelto sin normalizar")
         return data.astype(np.float32, copy=False)
+
+    # Algunos datasets procesados (UPENN/CaPTk) dejan fondo no-cero alrededor del
+    # cerebro. Si se normaliza con data > 0, ese fondo se convierte en bloques
+    # grises. Usamos un foreground robusto: valores claramente por encima del
+    # percentil bajo de los positivos.
+    threshold = max(float(np.percentile(positive, 5)), 1e-6)
+    mask = data > threshold
+    if mask.sum() == 0:
+        mask = data > 0
 
     mean_val = data[mask].mean()
     std_val = data[mask].std()
@@ -159,6 +168,37 @@ def preprocess_single_volume(nifti_path: Path, config: PreprocessingConfig) -> n
     return normalize_intensity(data, source_path=nifti_path)
 
 
+def preprocess_paired_volumes(
+    t1_path: Path,
+    t2_path: Path,
+    config: PreprocessingConfig,
+) -> tuple[np.ndarray, np.ndarray]:
+    import nibabel as nib
+    from nibabel.processing import resample_from_to
+
+    t1_img = reorient_to_ras(nib.load(str(t1_path)))
+    t2_img = reorient_to_ras(nib.load(str(t2_path)))
+
+    # UPENN y otros datasets pueden traer T1/T2 con distinto origen/FOV. Para
+    # una CNN multicanal, ambas modalidades deben compartir la misma rejilla.
+    t2_img = resample_from_to(t2_img, t1_img, order=1, mode="constant", cval=0.0)
+
+    spacing = t1_img.header.get_zooms()[:3]
+    t1_data = t1_img.get_fdata().astype(np.float32)
+    t2_data = t2_img.get_fdata().astype(np.float32)
+
+    t1_data = resample_volume(t1_data, spacing, config.target_spacing)
+    t2_data = resample_volume(t2_data, spacing, config.target_spacing)
+
+    t1_data = crop_or_pad(t1_data, config.target_shape)
+    t2_data = crop_or_pad(t2_data, config.target_shape)
+
+    return (
+        normalize_intensity(t1_data, source_path=t1_path),
+        normalize_intensity(t2_data, source_path=t2_path),
+    )
+
+
 def output_path_for_sample(sample: DatasetSample, output_root: Path) -> Path:
     return output_root / sample.class_subdir / sample.output_name
 
@@ -174,8 +214,7 @@ def save_sample_npz(
         return output_path, False
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    t1_data = preprocess_single_volume(sample.t1_path, config)
-    t2_data = preprocess_single_volume(sample.t2_path, config)
+    t1_data, t2_data = preprocess_paired_volumes(sample.t1_path, sample.t2_path, config)
 
     np.savez_compressed(
         str(output_path),
