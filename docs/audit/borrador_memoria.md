@@ -119,6 +119,67 @@ confound se elimina por construcción (mismo escáner, ambas clases), tanto el
 modelo profundo como el modelo lineal triviales rinden indistinguiblemente del
 azar al nivel de muestra disponible.
 
+### Paso 5 — Evidencia en el espacio latente de la CNN (embeddings)
+Para visualizar *qué* codifica internamente el modelo confundido se extrajo,
+para los 2267 volúmenes, el vector de 96 dimensiones de la última capa
+convolucional (salida de `AdaptiveAvgPool3d`, antes del clasificador) y se
+proyectó a 2D mediante PCA y t-SNE
+(`docs/audit/figures/embeddings_{pca,tsne}.png`). Se cuantificó la compacidad
+del agrupamiento con el coeficiente *silhouette*
+(`docs/audit/embeddings_silhouette.json`):
+
+- *silhouette* por **etiqueta** = 0.754
+- *silhouette* por **dataset** = 0.366
+
+La separación por clase es nítida (0.754); sin embargo, dado que
+`clase ≡ dataset`, esa separación **no permite distinguir** si el modelo
+codifica "tumor" o "procedencia", y **no debe interpretarse como evidencia de
+capacidad de detección**. El *silhouette* global por dataset (0.366) está
+parcialmente diluido porque agrega la separación inter-clase con la
+intra-clase; para aislar la huella de procedencia es necesario el análisis
+refinado que sigue.
+
+**Análisis refinado: separabilidad de datasets DENTRO de cada clase.** La
+pregunta diagnóstica precisa es si la red distingue dos cohortes de la *misma*
+clase. Se mide entrenando un clasificador (regresión logística, validación
+cruzada 5-fold) sobre los embeddings, restringido a cada clase
+(`docs/audit/embeddings_intraclass.json`):
+
+| Pregunta | *silhouette* | LogReg CV-AUC |
+|---|---|---|
+| IXI vs NKI (ambos **sanos**) | 0.561 | **0.998** |
+| BraTS vs UPENN (ambos **tumor**) | 0.186 | **0.991** |
+| Clasificar el dataset (4 clases) desde embeddings | — | **acc 0.982** (azar 0.25) |
+
+Dados dos sujetos **igualmente sanos**, uno de IXI y otro de NKI, el espacio
+latente de la red permite identificar su cohorte de origen con AUC = 0.998 —
+una capacidad que **nada tiene que ver con la presencia de tumor**. La
+representación interna funciona, en la práctica, como un identificador del
+centro de adquisición (clasificación de dataset al 98 % frente a un 25 % de
+azar). Esto aísla la huella de procedencia que el *silhouette* global, dominado
+por la separación de clase, enmascaraba. La menor separabilidad BraTS-UPENN
+(0.186) frente a IXI-NKI (0.561) es coherente con que BraTS y UPENN comparten
+un preprocesado de tipo *challenge*, mientras IXI y NKI son cohortes de
+investigación con protocolos más dispares.
+
+> **Nota de honestidad metodológica.** Se reportan tanto el *silhouette* global
+> (0.366, diluido) como el análisis intra-clase (limpio). El segundo no
+> sustituye al primero: lo explica. La medición intra-clase es la pregunta
+> correctamente planteada desde el inicio (¿se separan cohortes de la misma
+> clase?), no una métrica seleccionada a posteriori por conveniencia.
+
+### Pasos auxiliares — confound en datos crudos y matrices de confusión
+- **Distribución de intensidades por dataset**
+  (`docs/audit/figures/intensity_by_dataset.png`): los cuatro datasets son
+  separables ya en estadísticos triviales (fracción de vóxeles no-cero, media
+  y percentiles de intensidad), confirmando que el confound existe **antes**
+  de entrar al modelo, en los propios píxeles. Esto explica por qué la *tiny
+  baseline* lineal del Paso 2 alcanza AUC 1.0.
+- **Matrices de confusión por régimen**
+  (`docs/audit/figures/confusion_matrices.png`): comparan visualmente
+  confounded (diagonal perfecta), LODO A, LODO B (colapso/inversión) y Ghent
+  intra-dominio (dispersión propia del azar).
+
 ---
 
 ## 3. Hipótesis alternativas descartadas
@@ -217,6 +278,39 @@ documentada:
 > pendiente de una cohorte intra-dominio de mayor tamaño y, deseablemente,
 > multi-céntrica con ambas clases representadas en cada centro."*
 
+> *"El análisis del espacio latente de la red refuerza esta conclusión: a
+> partir del vector de características de la última capa convolucional, un
+> clasificador lineal distingue las dos cohortes de sujetos sanos (IXI frente a
+> NKI Rockland) con AUC = 0.998, y predice el dataset de origen entre las cuatro
+> fuentes con una exactitud del 98 % (frente a un 25 % de azar). Es decir, la
+> representación aprendida codifica la procedencia del estudio con independencia
+> de la presencia de lesión, lo que constituye evidencia directa, a nivel de
+> representación interna, del confound de dominio identificado."*
+
+---
+
+## 5-bis. Inventario de figuras para la memoria
+
+Todas en `docs/audit/figures/`. La columna "mensaje" sirve como pie de figura.
+
+| Figura | Mensaje que transmite |
+|---|---|
+| `auc_summary.png` | El AUC se desploma de ~1.0 a azar al eliminar el confound (barras con IC95%). Figura resumen. |
+| `roc_curves.png` | Confounded pega al techo; LODO se aleja; intra-dominio cae a la diagonal. |
+| `score_hist_confound.png` | El run confundido da scores bimodales extremos por dataset, no por contenido. |
+| `score_hist_lodo.png` | En cross-dataset los scores se descolocan (LODO A y B). |
+| `confusion_matrices.png` (E3) | Diagonal perfecta (confounded) → colapso/inversión (LODO) → dispersión (intra-dominio). |
+| `btc_kfold_bars.png` | Intra-dominio: AUC por fold disperso en torno al azar, IC95% ancho. |
+| `embeddings_tsne.png` (E1) | **Figura estrella**: el latente agrupa por procedencia; IXI y NKI (ambos sanos) no se fusionan. |
+| `embeddings_pca.png` (E1) | Versión lineal del anterior, con varianza explicada. |
+| `intensity_by_dataset.png` (E2) | El confound existe ya en los píxeles crudos (estadísticos de intensidad separables por dataset). |
+| `gradcam/confound/*.png` | El mapa de atención cae en fondo/bordes, no en la lesión. |
+| `gradcam/lodo_{A,B}/*.png` | Apoyo: a qué atiende el modelo cross-dataset. |
+
+**Selección mínima si hay que recortar:** `auc_summary`, `embeddings_tsne`,
+`confusion_matrices`, un `gradcam/confound`. Esas cuatro cuentan la historia
+completa.
+
 ---
 
 ## 6. Anticipo de preguntas del tribunal
@@ -265,9 +359,11 @@ intra-dominio sobre BTC_preop.
 
 ## 7. Trabajo futuro inmediato
 
-1. **Ampliar el experimento intra-dominio a T1+T2** (Edinburgh SN-851861 si
-   se obtiene la aprobación de acceso) y reportar la diferencia respecto a
-   T1-only.
+1. **Ampliar el experimento intra-dominio a T1+T2** con el dataset de
+   Edinburgh (UK Data Service SN-851861, **acceso ya aprobado**): replicar la
+   validación intra-dominio en un segundo dominio independiente y con las dos
+   modalidades, condicionado a verificar que el depósito incluye los controles
+   sanos además de los pacientes.
 2. **Reunir o solicitar una cohorte intra-dominio de mayor tamaño** (objetivo
    n ≥ 100 con ambas clases en el mismo centro) para reducir la anchura del
    IC95%.
@@ -275,10 +371,6 @@ intra-dominio sobre BTC_preop.
    protocolo LODO) si se dispone de tiempo de cómputo.
 4. **Calibración del clasificador final** (Platt scaling, reliability
    diagrams) sobre la cohorte intra-dominio cuando alcance tamaño suficiente.
-5. **Análisis explicativo (Grad-CAM 3D)** sobre los checkpoints de los tres
-   regímenes para mostrar visualmente que el modelo confundido atiende a
-   regiones no clínicas, frente al hipotético modelo honesto entrenado con
-   más datos.
 
 ---
 
@@ -293,11 +385,14 @@ intra-dominio sobre BTC_preop.
 | LODO B CNN AUC 0.2012 | `outputs/evaluation/lodo_B/cnn3d_test_results.json` |
 | Ghent tiny baseline AUC + IC | `docs/audit/btc_intradomain_tinybaseline.json` |
 | Ghent CNN AUC + IC + per-fold | `outputs/evaluation/btc_intradomain/cnn_kfold_results.json` |
+| Embeddings + silhouette global (E1) | `docs/audit/embeddings.npz`, `docs/audit/embeddings_silhouette.json` |
+| Silhouette intra-clase + clasificador de dataset desde embeddings | `docs/audit/embeddings_intraclass.json` (`src/audit/embeddings_intraclass.py`) |
+| Clasificador de dataset acc 0.985 (C) | `docs/audit/audit_leakage.json` (`dataset_origin_classifier`) |
 | Composición ds001226 | `data/raw/btc_preop/participants.tsv` (DOI 10.18112/openneuro.ds001226.v5.0.0) |
-| Scripts auditoría | `src/audit/audit_leakage.py`, `audit_lodo.py`, `btc_tiny_baseline.py`, `btc_cnn_kfold.py` |
+| Scripts auditoría | `src/audit/audit_leakage.py`, `audit_lodo.py`, `btc_tiny_baseline.py`, `btc_cnn_kfold.py`, `embeddings_tsne.py`, `make_extra_figures.py`, `make_plots.py`, `gradcam_3d.py` |
 
 Todos los runs son reproducibles con `seed = 42` (split y entrenamiento) y
-`seed = 0` (bootstrap de IC95%).
+`seed = 0` (bootstrap de IC95% y proyecciones).
 
 ---
 

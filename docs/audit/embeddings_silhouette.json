@@ -1,0 +1,5 @@
+{
+  "silhouette_by_dataset": 0.36626994609832764,
+  "silhouette_by_label": 0.7535938024520874,
+  "interpretation": "valor alto = clusters compactos. Si by_dataset >> by_label, el espacio latente codifica procedencia."
+}
