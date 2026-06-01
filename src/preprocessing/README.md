@@ -146,6 +146,32 @@ UPENN positivos:
 python src\preprocessing\preprocess_upenn.py
 ```
 
+NKI Rockland negativos:
+
+Primero descarga solo sujetos con T1w y T2w completos en la misma sesion:
+
+```powershell
+python src\preprocessing\download_nki_rockland.py --aws-links C:\Users\1cnac\Downloads\aws_links.csv --out-dir data\raw\nki_rockland --include-json
+```
+
+Para probar antes sin descargar:
+
+```powershell
+python src\preprocessing\download_nki_rockland.py --aws-links C:\Users\1cnac\Downloads\aws_links.csv --out-dir data\raw\nki_rockland --limit 3 --dry-run --include-json
+```
+
+Despues crea los `.npz` como negativos:
+
+```powershell
+python src\preprocessing\preprocess_nki_rockland.py --skull-strip
+```
+
+Si el skull-strip ya esta hecho y quieres recrear solo los `.npz`:
+
+```powershell
+python src\preprocessing\preprocess_nki_rockland.py --use-stripped
+```
+
 Salida final:
 
 ```text
@@ -203,13 +229,7 @@ negatives/IXI002-Guys-0828.npz
 ## 6. Regenerar splits
 
 ```powershell
-@'
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path("src/data").resolve()))
-from dataset import create_splits
-create_splits(seed=42)
-'@ | python -
+python -c "import sys; sys.path.insert(0, '.'); from src.data.dataset_3d import create_splits; create_splits(seed=42)"
 ```
 
 Salida:

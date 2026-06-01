@@ -130,17 +130,39 @@ def crop_or_pad(data: np.ndarray, target_shape: tuple[int, int, int]) -> np.ndar
 
 
 def normalize_intensity(data: np.ndarray, source_path: Path | str = "") -> np.ndarray:
+    """Z-score sobre la mascara de tejido cerebral, calculada de forma robusta.
+
+    Importante para UPENN/CaPTk: estas imagenes traen un "shell" de fondo
+    gris no-cero alrededor del cerebro. Usar `data > 0` o
+    `data > percentile(positive, 5)` incluye ese shell dentro de la
+    mascara, contaminando la media/std y dejando UPENN con una escala
+    distinta a BraTS/IXI/NKI (~3-4x mas voxels no-cero).
+
+    Estrategia: Otsu sobre los voxels positivos para separar shell de
+    tejido. Fallback al percentil 30 si scikit-image no esta disponible
+    o si Otsu falla (volumen con muy pocos voxels positivos).
+    """
     positive = data[data > 0]
     if positive.size == 0:
         print(f"  WARNING: volumen sin voxels positivos ({source_path}), devuelto sin normalizar")
         return data.astype(np.float32, copy=False)
 
-    # Algunos datasets procesados (UPENN/CaPTk) dejan fondo no-cero alrededor del
-    # cerebro. Si se normaliza con data > 0, ese fondo se convierte en bloques
-    # grises. Usamos un foreground robusto: valores claramente por encima del
-    # percentil bajo de los positivos.
-    threshold = max(float(np.percentile(positive, 5)), 1e-6)
+    threshold: float
+    try:
+        from skimage.filters import threshold_otsu
+        threshold = float(threshold_otsu(positive))
+    except Exception:
+        # Fallback: percentil 30 (mas conservador que el 5 original,
+        # corta el shell gris tipico de UPENN).
+        threshold = float(np.percentile(positive, 30))
+
+    threshold = max(threshold, 1e-6)
     mask = data > threshold
+    # Salvaguarda: si Otsu corta demasiado y deja muy poca mascara,
+    # afloja al percentil 10 de positivos.
+    if mask.sum() < 1000:
+        threshold = max(float(np.percentile(positive, 10)), 1e-6)
+        mask = data > threshold
     if mask.sum() == 0:
         mask = data > 0
 

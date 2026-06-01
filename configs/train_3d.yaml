@@ -13,22 +13,35 @@ data:
   persistent_workers: true
   prefetch_factor: 2
   seed: 42
+  # Poner true para regenerar el split estratificado por (dataset,label) y agrupado por subject_id.
   recreate_splits: true
   crop_shape: [128, 160, 128]
-  random_crop_train: true
+  # Center crop tambien en train: elimina el shift train(random)->val(center)
+  # que estaba contribuyendo a la oscilacion de val_auc.
+  random_crop_train: false
   augment_train: true
   splits:
     train_ratio: 0.70
     val_ratio: 0.15
 
 training:
-  n_epochs: 30
-  lr: 1.0e-4
-  weight_decay: 1.0e-4
-  patience: 8
-  amp: true
-  # Peso de la clase positiva para BCEWithLogitsLoss: n_negativos / n_positivos.
-  pos_weight: auto
+  n_epochs: 40
+  # Lr mas bajo: el overfitting aparecia desde la epoca 2 con 1e-4.
+  lr: 5.0e-5
+  # Weight decay mas alto: regularizar el modelo pequeño.
+  weight_decay: 1.0e-3
+  patience: 10
+  # AMP off con batch=1 + GroupNorm: float16 amplifica inestabilidades.
+  # Volver a activarlo cuando se pueda subir el batch.
+  amp: false
+  # Clases ya equilibradas (~770 neg / 817 pos). pos_weight=1 elimina la
+  # hipotesis "el loss favorece tumor".
+  pos_weight: 1.0
+  # Scheduler: cosine permite ajuste fino al final.
+  scheduler: cosine
+  # No guardar checkpoints con sensitivity por debajo de este umbral
+  # (evita guardar modelos triviales "todo es sano").
+  min_sensitivity_for_save: 0.80
 
 performance:
   # Acelera convoluciones 3D cuando el tamano de entrada es estable.

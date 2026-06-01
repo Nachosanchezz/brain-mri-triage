@@ -10,15 +10,28 @@ import torch
 from torch import nn
 
 
+def _norm(num_channels: int) -> nn.Module:
+    """GroupNorm con 8 grupos (o menos si el canal es pequeño).
+
+    Se usa en vez de BatchNorm3d porque con batch_size=1 las estadisticas
+    por batch son ruidosas y los running stats no convergen, generando un
+    gap masivo entre train y val.
+    """
+    num_groups = min(8, num_channels)
+    while num_channels % num_groups != 0 and num_groups > 1:
+        num_groups -= 1
+    return nn.GroupNorm(num_groups=num_groups, num_channels=num_channels)
+
+
 class ConvBlock3D(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, dropout: float = 0.0):
         super().__init__()
         self.block = nn.Sequential(
             nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm3d(out_channels),
+            _norm(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm3d(out_channels),
+            _norm(out_channels),
             nn.ReLU(inplace=True),
             nn.Dropout3d(dropout) if dropout > 0 else nn.Identity(),
         )
