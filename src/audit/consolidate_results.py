@@ -112,10 +112,35 @@ def main() -> None:
     md.append(f"| **Ghent intra-dominio (n=36, k-fold)** | Tiny baseline RF     | **{fmt(summary.get('btc_tiny_rf_auc'))}** | [{fmt(btc_rf_ci[0])}, {fmt(btc_rf_ci[1])}] | T1-only |")
     md.append(f"| **Ghent intra-dominio (n=36, k-fold)** | **CNN 3D 1-canal**   | **{fmt(summary.get('btc_cnn_auc'))}** | [{fmt(btc_cnn_ci[0])}, {fmt(btc_cnn_ci[1])}] | sen={fmt(summary.get('btc_cnn_sen'))}  spe={fmt(summary.get('btc_cnn_spe'))} |")
 
+    # Embeddings (E1)
+    sil = load_json_safe(REPO_ROOT / "docs" / "audit" / "embeddings_silhouette.json")
+    if sil:
+        md.append("\n## Embeddings (E1) — espacio latente de la CNN\n")
+        md.append(f"- silhouette global: por etiqueta = {fmt(sil.get('silhouette_by_label'), '.3f')}  |  "
+                  f"por dataset = {fmt(sil.get('silhouette_by_dataset'), '.3f')} (diluido)")
+    intra = load_json_safe(REPO_ROOT / "docs" / "audit" / "embeddings_intraclass.json")
+    if intra:
+        s = intra.get("intraclass_sanos_IXI_vs_NKI") or {}
+        t = intra.get("intraclass_tumor_BraTS_vs_UPENN") or {}
+        dc = intra.get("dataset_classifier_from_embeddings") or {}
+        md.append(f"- **intra-clase (huella de procedencia aislada):** IXI vs NKI (sanos) "
+                  f"LogReg CV-AUC = {fmt(s.get('logreg_cv_auc'), '.3f')}; "
+                  f"BraTS vs UPENN (tumor) = {fmt(t.get('logreg_cv_auc'), '.3f')}")
+        md.append(f"- clasificador de dataset (4 clases) desde embeddings: "
+                  f"acc = {fmt(dc.get('cv_accuracy'), '.3f')} (azar {dc.get('chance_level')})")
+        md.append("- Conclusion: el latente identifica el centro de origen incluso entre "
+                  "sujetos de la MISMA clase -> codifica procedencia, no solo tumor. "
+                  "Ver `figures/embeddings_tsne.png`.")
+
     md.append("\n## Lectura sugerida\n")
     md.append("- **Mixed AUC ~ 1.0** (CNN y baseline lineal): confound trivial.")
     md.append("- **LODO**: caos asimetrico, AUC < 0.5 en algunos casos = predicciones invertidas. Firma de dataset, no tumor.")
     md.append("- **Ghent intra-dominio**: con dominio controlado, AUC honesto con IC95%. ESE es el numero entregable.")
+    md.append("- **Embeddings**: el espacio latente codifica origen del dato mas alla de la clase.")
+    md.append("\n## Figuras (docs/audit/figures/)\n")
+    md.append("auc_summary, roc_curves, score_hist_confound, score_hist_lodo, "
+              "confusion_matrices, btc_kfold_bars, embeddings_tsne, embeddings_pca, "
+              "intensity_by_dataset, gradcam/{confound,lodo_A,lodo_B}/*")
     md.append("\n_Generado por `src/audit/consolidate_results.py`_\n")
 
     (OUT_DIR / "resumen_consolidado.md").write_text("\n".join(md), encoding="utf-8")

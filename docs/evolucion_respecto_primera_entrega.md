@@ -6,6 +6,31 @@
 
 ---
 
+> ## ⚠️ NOTA DE ACTUALIZACIÓN (estado posterior)
+>
+> **Este documento describe un estado INTERMEDIO del proyecto y ha quedado
+> parcialmente desactualizado.** Se conserva como registro histórico de la
+> evolución respecto a la primera entrega, pero las siguientes afirmaciones que
+> aparecen más abajo **ya NO reflejan el estado final** del repositorio:
+>
+> | Afirmación en este documento | Estado real actual | Fuente vigente |
+> |---|---|---|
+> | «El modelo 3D **no ha sido entrenado todavía**» / «No hay checkpoint» | La CNN 3D **sí se entrenó**: run `20260527_152619`, test AUC ≈ 0.99997 | `outputs/evaluation/cnn3d_test_results.json`, `docs/justificacion_cambios.md` |
+> | «Los scripts de evaluación (`evaluate_3d.py`) **no existen todavía**» | `src/evaluation/evaluate_3d.py` **existe y se ha ejecutado** | `src/evaluation/evaluate_3d.py` |
+> | «negatives → **IXI únicamente** (577)» | Negativos = **IXI (577) + NKI Rockland (523) = 1100** | `data/processed/preprocessing_summary.json` |
+> | Parámetros de la CNN 3D «**~200K**» | **504 553 parámetros** (verificado instanciando el modelo; 504 229 en la variante 1-canal) | `src/models/cnn3d.py` |
+> | Referencia a `docs/revision_tecnica.md` | Ese archivo **no existe**; el informe equivalente es `docs/auditoria_resultados_sospechosos.md` | `docs/auditoria_resultados_sospechosos.md` |
+>
+> **Hallazgo posterior no recogido aquí.** Tras entrenar la CNN 3D se detectó que
+> su rendimiento casi perfecto se debe a un **confound estructural dominio↔clase**
+> (la etiqueta coincide al 100 % con el dataset de origen) y **no** a detección
+> real de tumor. La auditoría completa (tiny baseline, LODO, validación
+> intra-dominio BTC, embeddings, Grad-CAM) está en `docs/audit/` y la
+> reconstrucción consolidada en `docs/reconstruccion_evolucion_tfg.md`. **Para el
+> estado y las conclusiones finales, consultar esos documentos, no este.**
+
+---
+
 ## 0. Contexto
 
 La primera entrega planteaba una clasificación binaria a nivel de estudio (tumor sí/no), con BraTS 2021 como clase positiva, IXI como clase negativa y UPENN-GBM como conjunto de evaluación externa. El sistema debía usar T1 y T2, aplicar preprocesado homogéneo, partir datos a nivel de paciente y usar sensibilidad como métrica principal.
@@ -150,7 +175,7 @@ Output: logits (B, 2)
 |---|---|---|
 | Dimensión | Pseudo-2D (16 slices como canales) | 3D volumétrico completo |
 | Inicialización | Transfer learning ImageNet | **Desde cero (random init)** |
-| Parámetros aprox. | ResNet18: 11M (pretrained) | ~200K (compacto, no pretrained) |
+| Parámetros aprox. | ResNet18: 11M (pretrained) | **504 553** (compacto, no pretrained; ver nota de actualización) |
 | Input shape | (B, 32, 192, 224) | (B, 2, 128, 160, 128) |
 | Volumen cubierto | 16 slices axiales centrales | Sub-volumen 3D completo |
 

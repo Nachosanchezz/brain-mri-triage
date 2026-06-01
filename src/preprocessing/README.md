@@ -20,9 +20,10 @@ de volumen distintos. Por eso se aplica una pipeline comun:
 DICOM -> NIfTI -> RAS -> 1 mm isotropico -> crop/pad -> z-score -> .npz
 ```
 
-El formato final esta pensado para una CNN 2.5D: se guarda el volumen 3D
-completo y despues el `Dataset` de PyTorch puede extraer cortes o grupos de
-cortes 2D alrededor de una posicion.
+El formato final guarda el volumen 3D completo. El modelo definitivo
+(`src/models/cnn3d.py::BrainTumorCNN3D`) es una CNN **3D volumetrica** que
+consume el par T1+T2 como dos canales; durante la carga, el `Dataset` de PyTorch
+recorta un subvolumen a `(128, 160, 128)` por restricciones de memoria GPU.
 
 ## Que hace cada paso
 
@@ -185,7 +186,7 @@ Cada `.npz` contiene:
 t1         -> (192, 224, 192) float32
 t2         -> (192, 224, 192) float32
 label      -> 1 tumor, 0 no tumor
-dataset    -> brats, upenn, ixi
+dataset    -> brats, upenn, ixi, nki_rockland
 subject_id -> identificador del caso
 source_t1  -> ruta NIfTI original
 source_t2  -> ruta NIfTI original
@@ -198,12 +199,18 @@ label=1 -> tumor / masa tumoral
 label=0 -> no tumor
 ```
 
-Actualmente:
+Estado actual del pool principal (`data/processed/`, ver
+`preprocessing_summary.json`):
 
 ```text
-positives -> BraTS + UPENN
-negatives -> IXI
+positives -> BraTS (580) + UPENN-GBM (587)   = 1167
+negatives -> IXI (577) + NKI Rockland (523)  = 1100
+total                                         = 2267
 ```
+
+> Nota: el dataset intra-dominio BTC_preop (OpenNeuro ds001226) se preprocesa
+> aparte con `preprocess_btc.py` a `data/processed_btc/` y es **T1-only**
+> (no se usa en este pool de 2 canales).
 
 ## 5. Actualizar resumen
 
@@ -224,6 +231,7 @@ dataset. Tambien guarda ejemplos con rutas relativas como:
 positives/BraTS2021_00000.npz
 positives/UPENN-GBM-00001.npz
 negatives/IXI002-Guys-0828.npz
+negatives/NKI-A00008326-BAS2.npz
 ```
 
 ## 6. Regenerar splits
@@ -238,7 +246,8 @@ Salida:
 data/splits.json
 ```
 
-Los splits se hacen estratificados por clase:
+Los splits se hacen **estratificados por `(dataset, label)`** y **agrupados por
+`subject_id`** (`create_splits` en `src/data/dataset_3d.py`):
 
 ```text
 train -> 70 %
@@ -246,7 +255,9 @@ val   -> 15 %
 test  -> 15 %
 ```
 
-Esto intenta conservar la proporcion de positivos y negativos en cada particion.
+La estratificacion conjunta por dataset Y etiqueta evita que un re-split deje
+un dataset sub/sobre-representado en alguna particion; la agrupacion por
+`subject_id` evita el leakage de un mismo sujeto entre train/val/test.
 
 ## 7. Comandos utiles
 

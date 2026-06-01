@@ -1,0 +1,30 @@
+{
+  "intraclass_sanos_IXI_vs_NKI": {
+    "datasets": [
+      "ixi",
+      "nki_rockland"
+    ],
+    "n": 1100,
+    "silhouette": 0.5610893964767456,
+    "logreg_cv_auc": 0.9981376606764732
+  },
+  "intraclass_tumor_BraTS_vs_UPENN": {
+    "datasets": [
+      "brats",
+      "upenn"
+    ],
+    "n": 1167,
+    "silhouette": 0.18557694554328918,
+    "logreg_cv_auc": 0.9908153674440462
+  },
+  "dataset_classifier_from_embeddings": {
+    "n_classes": 4,
+    "cv_accuracy": 0.9819144243493604,
+    "chance_level": 0.25
+  },
+  "global_silhouette_reference": {
+    "silhouette_by_dataset": 0.36626994609832764,
+    "silhouette_by_label": 0.7535938024520874,
+    "interpretation": "valor alto = clusters compactos. Si by_dataset >> by_label, el espacio latente codifica procedencia."
+  }
+}
