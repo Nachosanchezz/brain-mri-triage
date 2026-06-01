@@ -1,0 +1,58 @@
+{
+  "n_samples": 36,
+  "n_positives": 25,
+  "n_negatives": 11,
+  "k_fold": 5,
+  "logreg_auc_overall": 0.5490909090909091,
+  "logreg_auc_ci95": [
+    0.31917181069958844,
+    0.7882011217948718
+  ],
+  "rf_auc_overall": 0.40545454545454546,
+  "rf_auc_ci95": [
+    0.21538461538461537,
+    0.6161337925627239
+  ],
+  "per_fold": [
+    {
+      "fold": 0,
+      "n_test": 8,
+      "logreg_auc": 0.8666666666666667,
+      "rf_auc": 0.4666666666666667
+    },
+    {
+      "fold": 1,
+      "n_test": 7,
+      "logreg_auc": 0.8,
+      "rf_auc": 0.3
+    },
+    {
+      "fold": 2,
+      "n_test": 7,
+      "logreg_auc": 0.8,
+      "rf_auc": 0.5
+    },
+    {
+      "fold": 3,
+      "n_test": 7,
+      "logreg_auc": 0.0,
+      "rf_auc": 0.35
+    },
+    {
+      "fold": 4,
+      "n_test": 7,
+      "logreg_auc": 0.4,
+      "rf_auc": 0.4
+    }
+  ],
+  "feature_names": [
+    "nz_frac_t1",
+    "mean_t1",
+    "std_t1",
+    "p01_t1",
+    "p25_t1",
+    "p50_t1",
+    "p75_t1",
+    "p99_t1"
+  ]
+}

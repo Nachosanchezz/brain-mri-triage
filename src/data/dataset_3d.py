@@ -71,6 +71,25 @@ def list_processed_files(processed_dir: Path = PROCESSED_DIR) -> tuple[list[str]
     return files, labels
 
 
+def _scalar(value):
+    if isinstance(value, np.ndarray):
+        value = value.item()
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    return value
+
+
+def _extract_meta(path: str) -> tuple[str, str, int]:
+    p = Path(path)
+    with np.load(p) as sample:
+        ds = str(_scalar(sample["dataset"])) if "dataset" in sample.files else "unknown"
+        sid = str(_scalar(sample["subject_id"])) if "subject_id" in sample.files else p.stem
+        lbl = int(sample["label"]) if "label" in sample.files else (
+            1 if p.parent.name == "positives" else 0
+        )
+    return ds, sid, lbl
+
+
 def create_splits(
     seed: int = 42,
     train_ratio: float = 0.70,
@@ -78,74 +97,70 @@ def create_splits(
     processed_dir: Path = PROCESSED_DIR,
     splits_file: Path = SPLITS_FILE,
 ) -> dict:
-    """Crea split estratificado train/val/test y lo guarda en JSON."""
-    files, labels = list_processed_files(processed_dir)
+    """Crea split estratificado por (dataset, label), agrupado por subject_id.
+
+    - Estratificacion conjunta por dataset Y label evita que un re-split
+      por azar deje un dataset sub/sobrerrepresentado en val/test.
+    - Agrupacion por subject_id evita leakage cuando un mismo sujeto
+      aparece en multiples ficheros (p.ej. NKI-...-BAS2, BAS3).
+    """
+    files, _ = list_processed_files(processed_dir)
     if not files:
         raise FileNotFoundError(f"No se encontraron .npz en {processed_dir}")
 
+    # 1) Indexar por subject_id (los ficheros del mismo sujeto deben caer en el mismo split)
+    by_subject: dict[str, dict] = {}
+    for f in files:
+        ds, sid, lbl = _extract_meta(f)
+        info = by_subject.setdefault(sid, {"dataset": ds, "label": lbl, "files": []})
+        info["files"].append(f)
+
+    # 2) Estratificar por (dataset, label) sobre la lista de sujetos unicos
     rng = np.random.default_rng(seed)
-    class_to_files: dict[int, list[str]] = {0: [], 1: []}
-    for path, label in zip(files, labels):
-        class_to_files[int(label)].append(path)
+    groups: dict[tuple[str, int], list[str]] = {}
+    for sid, info in by_subject.items():
+        groups.setdefault((info["dataset"], info["label"]), []).append(sid)
 
-    train_files: list[str] = []
-    val_files: list[str] = []
-    test_files: list[str] = []
-    train_labels: list[int] = []
-    val_labels: list[int] = []
-    test_labels: list[int] = []
+    train_subjects: list[str] = []
+    val_subjects: list[str] = []
+    test_subjects: list[str] = []
+    for key, sids in groups.items():
+        sids = sorted(sids)  # estabilidad reproducible
+        rng.shuffle(sids)
+        n = len(sids)
+        n_train = int(round(n * train_ratio))
+        n_val = int(round(n * val_ratio))
+        train_subjects.extend(sids[:n_train])
+        val_subjects.extend(sids[n_train:n_train + n_val])
+        test_subjects.extend(sids[n_train + n_val:])
 
-    for label, class_files in class_to_files.items():
-        shuffled = list(class_files)
-        rng.shuffle(shuffled)
-        n_total = len(shuffled)
-        n_train = int(round(n_total * train_ratio))
-        n_val = int(round(n_total * val_ratio))
-
-        split_train = shuffled[:n_train]
-        split_val = shuffled[n_train:n_train + n_val]
-        split_test = shuffled[n_train + n_val:]
-
-        train_files.extend(split_train)
-        val_files.extend(split_val)
-        test_files.extend(split_test)
-        train_labels.extend([label] * len(split_train))
-        val_labels.extend([label] * len(split_val))
-        test_labels.extend([label] * len(split_test))
-
-    def shuffle_together(split_files: list[str], split_labels: list[int]) -> tuple[list[str], list[int]]:
-        indices = np.arange(len(split_files))
-        rng.shuffle(indices)
-        return [split_files[i] for i in indices], [split_labels[i] for i in indices]
-
-    train_files, train_labels = shuffle_together(train_files, train_labels)
-    val_files, val_labels = shuffle_together(val_files, val_labels)
-    test_files, test_labels = shuffle_together(test_files, test_labels)
+    def expand(sids: list[str]) -> list[str]:
+        out: list[str] = []
+        for sid in sids:
+            out.extend(by_subject[sid]["files"])
+        rng.shuffle(out)
+        return out
 
     splits = {
         "seed": seed,
-        "train": train_files,
-        "val": val_files,
-        "test": test_files,
+        "train": expand(train_subjects),
+        "val": expand(val_subjects),
+        "test": expand(test_subjects),
     }
 
     splits_file.parent.mkdir(parents=True, exist_ok=True)
     with open(splits_file, "w", encoding="utf-8") as f:
         json.dump(splits, f, indent=2)
 
-    def count_split(split_labels: list[int]) -> tuple[int, int]:
-        n_pos = int(sum(split_labels))
-        n_neg = int(len(split_labels) - n_pos)
-        return n_pos, n_neg
-
-    print(f"Splits guardados en {splits_file}")
-    for name, split_files, split_labels in [
-        ("train", train_files, train_labels),
-        ("val", val_files, val_labels),
-        ("test", test_files, test_labels),
+    print(f"Splits guardados en {splits_file} (estratificados por dataset+label, agrupados por subject_id)")
+    for name, split_files, sids in [
+        ("train", splits["train"], train_subjects),
+        ("val", splits["val"], val_subjects),
+        ("test", splits["test"], test_subjects),
     ]:
-        n_pos, n_neg = count_split(split_labels)
-        print(f"  {name:5s}: {len(split_files):4d} ({n_pos} pos, {n_neg} neg)")
+        n_pos = sum(1 for f in split_files if Path(f).parent.name == "positives")
+        n_neg = len(split_files) - n_pos
+        print(f"  {name:5s}: {len(split_files):4d} files ({n_pos} pos, {n_neg} neg) | {len(sids)} subjects")
 
     return splits
 
@@ -191,6 +206,29 @@ class BrainMRI3DDataset(Dataset):
         for axis in (1, 2, 3):
             if self.rng.random() < 0.5:
                 volume = np.flip(volume, axis=axis).copy()
+        # Augmentation de intensidad aplicada SOLO sobre voxels no-cero
+        # (mascara de cerebro). Asi no se inyecta señal en el fondo
+        # — clave en UPENN, que trae shell de fondo gris.
+        # Objetivo: forzar al modelo a usar contraste relativo y no
+        # depender del brillo absoluto caracteristico de cada dataset.
+        for c in range(volume.shape[0]):
+            channel = volume[c]
+            mask = channel != 0
+            if not mask.any():
+                continue
+            # Gamma correction sobre la magnitud (preservando el signo,
+            # porque el preprocesado deja valores z-score con negativos).
+            if self.rng.random() < 0.5:
+                gamma = float(self.rng.uniform(0.8, 1.25))
+                values = channel[mask]
+                sign = np.sign(values)
+                magnitude = np.abs(values) + 1e-6
+                channel[mask] = (sign * (magnitude ** gamma)).astype(np.float32)
+            # Ruido gaussiano de baja amplitud sobre el cerebro.
+            if self.rng.random() < 0.5:
+                noise = self.rng.normal(0.0, 0.03, size=int(mask.sum())).astype(np.float32)
+                channel[mask] = channel[mask] + noise
+            volume[c] = channel
         return volume
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:

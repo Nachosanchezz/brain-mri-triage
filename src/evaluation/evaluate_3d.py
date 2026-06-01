@@ -287,6 +287,28 @@ def main() -> None:
             }
         )
 
+    # Metricas por dataset: clave para saber si los FP vienen de IXI, NKI o ambos
+    by_dataset: dict[str, dict[str, list]] = {}
+    for path_str, label, score in zip(file_paths, y_true, y_score):
+        ds = read_npz_metadata(Path(path_str))["dataset"]
+        bucket = by_dataset.setdefault(ds, {"y": [], "s": []})
+        bucket["y"].append(label)
+        bucket["s"].append(score)
+
+    per_dataset: dict[str, dict] = {}
+    for ds, bucket in by_dataset.items():
+        ys = bucket["y"]
+        ss = bucket["s"]
+        m = metrics_at_threshold(ys, ss, args.threshold)
+        only_one_class = len(set(ys)) < 2
+        m["auc"] = float("nan") if only_one_class else binary_auc(ys, ss)
+        m["n"] = len(ys)
+        m["n_pos"] = int(sum(ys))
+        m["n_neg"] = int(len(ys) - sum(ys))
+        m["score_mean"] = float(np.mean(ss)) if ss else float("nan")
+        m["score_std"] = float(np.std(ss)) if ss else float("nan")
+        per_dataset[ds] = m
+
     results = {
         "checkpoint": str(args.checkpoint),
         "split": args.split,
@@ -301,6 +323,7 @@ def main() -> None:
             y_score,
             args.target_sensitivity,
         ),
+        "per_dataset": per_dataset,
     }
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -319,6 +342,13 @@ def main() -> None:
         f"acc={m['accuracy']:.4f} sen={m['sensitivity']:.4f} "
         f"spe={m['specificity']:.4f} f1={m['f1']:.4f}"
     )
+    print("--- per dataset ---")
+    for ds, dm in sorted(per_dataset.items()):
+        print(
+            f"  {ds:<14} n={dm['n']:3d} (pos={dm['n_pos']} neg={dm['n_neg']}) "
+            f"sen={dm['sensitivity']:.3f} spe={dm['specificity']:.3f} "
+            f"score_mean={dm['score_mean']:.3f}±{dm['score_std']:.3f}"
+        )
     print(f"Resultados guardados en: {results_path}")
     print(f"Predicciones guardadas en: {predictions_json_path}")
     print(f"Predicciones CSV guardadas en: {predictions_csv_path}")

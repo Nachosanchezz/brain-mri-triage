@@ -3,10 +3,10 @@ train_3d.py
 -----------
 Entrenamiento de CNN 3D para clasificacion tumor/no tumor.
 
-Guarda:
-  - outputs/checkpoints/cnn3d_best.pt
-  - outputs/checkpoints/cnn3d_history.json
-  - outputs/plots/cnn3d_curves.png
+Guarda en outputs/checkpoints/<timestamp>/:
+  - best.pt
+  - history.json
+  - curves.png
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib
@@ -214,29 +215,26 @@ def save_curves(history: list[dict], output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     epochs = [row["epoch"] for row in history]
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-    axes[0].plot(epochs, [row["train_loss"] for row in history], label="train")
-    axes[0].plot(epochs, [row["val_loss"] for row in history], label="val")
-    axes[0].set_title("Loss")
-    axes[0].set_xlabel("Epoch")
-    axes[0].legend()
-    axes[0].grid(alpha=0.3)
+    fig, axes = plt.subplots(2, 2, figsize=(13, 8))
 
-    axes[1].plot(epochs, [row["train_accuracy"] for row in history], label="train")
-    axes[1].plot(epochs, [row["val_accuracy"] for row in history], label="val")
-    axes[1].set_title("Accuracy")
-    axes[1].set_xlabel("Epoch")
-    axes[1].set_ylim(0, 1)
-    axes[1].legend()
-    axes[1].grid(alpha=0.3)
+    axes[0, 0].plot(epochs, [row["train_loss"] for row in history], label="train")
+    axes[0, 0].plot(epochs, [row["val_loss"] for row in history], label="val")
+    axes[0, 0].set_title("Loss"); axes[0, 0].set_xlabel("Epoch"); axes[0, 0].legend(); axes[0, 0].grid(alpha=0.3)
 
-    axes[2].plot(epochs, [row["train_auc"] for row in history], label="train")
-    axes[2].plot(epochs, [row["val_auc"] for row in history], label="val")
-    axes[2].set_title("AUC")
-    axes[2].set_xlabel("Epoch")
-    axes[2].set_ylim(0, 1)
-    axes[2].legend()
-    axes[2].grid(alpha=0.3)
+    axes[0, 1].plot(epochs, [row["train_auc"] for row in history], label="train")
+    axes[0, 1].plot(epochs, [row["val_auc"] for row in history], label="val")
+    axes[0, 1].set_title("AUC"); axes[0, 1].set_xlabel("Epoch"); axes[0, 1].set_ylim(0, 1)
+    axes[0, 1].legend(); axes[0, 1].grid(alpha=0.3)
+
+    axes[1, 0].plot(epochs, [row["val_sensitivity"] for row in history], label="val sen", color="firebrick")
+    axes[1, 0].plot(epochs, [row["val_specificity"] for row in history], label="val spe", color="steelblue")
+    axes[1, 0].set_title("Val sensitivity / specificity"); axes[1, 0].set_xlabel("Epoch")
+    axes[1, 0].set_ylim(0, 1); axes[1, 0].legend(); axes[1, 0].grid(alpha=0.3)
+
+    bal = [row.get("val_balanced_accuracy", float("nan")) for row in history]
+    axes[1, 1].plot(epochs, bal, label="val balanced_acc", color="darkgreen")
+    axes[1, 1].set_title("Val balanced accuracy"); axes[1, 1].set_xlabel("Epoch")
+    axes[1, 1].set_ylim(0, 1); axes[1, 1].legend(); axes[1, 1].grid(alpha=0.3)
 
     plt.tight_layout()
     fig.savefig(output_path, dpi=150)
@@ -283,24 +281,36 @@ def main() -> None:
         weight_decay=float(training_cfg.get("weight_decay", 1e-4)),
     )
 
+    scheduler_name = str(training_cfg.get("scheduler", "none")).lower()
+    n_epochs = int(training_cfg.get("n_epochs", 30))
+    scheduler: torch.optim.lr_scheduler.LRScheduler | None = None
+    if scheduler_name == "cosine":
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_epochs)
+    elif scheduler_name == "plateau":
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="max", factor=0.5, patience=3
+        )
+
     use_amp = bool(training_cfg.get("amp", True)) and device.type == "cuda"
     scaler = torch.amp.GradScaler(enabled=use_amp)
 
-    checkpoint_dir = REPO_ROOT / config["paths"].get("checkpoint_dir", "outputs/checkpoints")
-    plots_dir = REPO_ROOT / config["paths"].get("plots_dir", "outputs/plots")
+    run_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    base_checkpoint_dir = REPO_ROOT / config["paths"].get("checkpoint_dir", "outputs/checkpoints")
+    checkpoint_dir = base_checkpoint_dir / run_ts
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    plots_dir.mkdir(parents=True, exist_ok=True)
 
-    best_path = checkpoint_dir / "cnn3d_best.pt"
-    history_path = checkpoint_dir / "cnn3d_history.json"
-    curves_path = plots_dir / "cnn3d_curves.png"
+    best_path = checkpoint_dir / "best.pt"
+    history_path = checkpoint_dir / "history.json"
+    curves_path = checkpoint_dir / "curves.png"
+    print(f"Run directory: {checkpoint_dir}")
 
     history: list[dict] = []
-    best_val_loss = float("inf")
+    best_val_score = float("-inf")
     patience = int(training_cfg.get("patience", 8))
     epochs_without_improvement = 0
+    min_sensitivity_for_save = float(training_cfg.get("min_sensitivity_for_save", 0.80))
 
-    for epoch in range(1, int(training_cfg.get("n_epochs", 30)) + 1):
+    for epoch in range(1, n_epochs + 1):
         train_metrics = run_epoch(
             model,
             train_loader,
@@ -322,6 +332,11 @@ def main() -> None:
             channels_last_3d=channels_last_3d,
         )
 
+        sen = val_metrics["sensitivity"]
+        spe = val_metrics["specificity"]
+        # balanced_accuracy: NaN si alguna de las dos es NaN (no contar)
+        bal = (sen + spe) / 2.0 if (sen == sen and spe == spe) else float("nan")
+
         row = {
             "epoch": epoch,
             "train_loss": train_metrics["loss"],
@@ -332,43 +347,73 @@ def main() -> None:
             "val_loss": val_metrics["loss"],
             "val_accuracy": val_metrics["accuracy"],
             "val_auc": val_metrics["auc"],
-            "val_sensitivity": val_metrics["sensitivity"],
-            "val_specificity": val_metrics["specificity"],
+            "val_sensitivity": sen,
+            "val_specificity": spe,
+            "val_balanced_accuracy": bal,
+            "lr": optimizer.param_groups[0]["lr"],
         }
         history.append(row)
 
         print(
             f"Epoch {epoch:03d} | "
             f"train loss={row['train_loss']:.4f} acc={row['train_accuracy']:.4f} auc={row['train_auc']:.4f} | "
-            f"val loss={row['val_loss']:.4f} acc={row['val_accuracy']:.4f} auc={row['val_auc']:.4f} "
-            f"sen={row['val_sensitivity']:.4f} spe={row['val_specificity']:.4f}"
+            f"val loss={row['val_loss']:.4f} auc={row['val_auc']:.4f} "
+            f"sen={sen:.4f} spe={spe:.4f} bal={bal:.4f} | lr={row['lr']:.2e}"
         )
 
         with open(history_path, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=2)
         save_curves(history, curves_path)
 
-        if row["val_loss"] < best_val_loss:
-            best_val_loss = row["val_loss"]
+        # Step del scheduler (despues de la metrica de val para plateau)
+        if scheduler is not None:
+            if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                if bal == bal:
+                    scheduler.step(bal)
+            else:
+                scheduler.step()
+
+        # Criterio de checkpoint: balanced_accuracy con sensitivity minima.
+        # Razon: con val_specificity=0 el AUC podia subir y guardarse un modelo
+        # inservible para triaje. Aqui exigimos que ademas spe>0 implicitamente
+        # (bal > 0) y que se mantenga una sensitivity razonable.
+        is_valid = (bal == bal) and (sen == sen) and (sen >= min_sensitivity_for_save)
+        if is_valid and bal > best_val_score:
+            best_val_score = bal
             epochs_without_improvement = 0
             torch.save(
                 {
                     "model_state_dict": model.state_dict(),
                     "config": config,
                     "epoch": epoch,
-                    "best_val_loss": best_val_loss,
+                    "best_val_balanced_accuracy": bal,
+                    "best_val_sensitivity": sen,
+                    "best_val_specificity": spe,
+                    "best_val_auc": row["val_auc"],
+                    "best_val_loss": row["val_loss"],
                 },
                 best_path,
             )
-            print(f"  Nuevo mejor checkpoint: {best_path}")
+            print(
+                f"  Nuevo mejor checkpoint (bal={bal:.4f}, sen={sen:.4f}, spe={spe:.4f}): {best_path}"
+            )
         else:
             epochs_without_improvement += 1
             if epochs_without_improvement >= patience:
-                print(f"Early stopping tras {patience} epocas sin mejora.")
+                print(
+                    f"Early stopping tras {patience} epocas sin mejora en balanced_accuracy "
+                    f"con sen >= {min_sensitivity_for_save:.2f}."
+                )
                 break
 
-    checkpoint = torch.load(best_path, map_location=device)
-    model.load_state_dict(checkpoint["model_state_dict"])
+    if not best_path.exists():
+        print(
+            "AVISO: no se guardo ningun checkpoint que cumpliera la condicion "
+            f"(sen>={min_sensitivity_for_save}). Evaluando con el modelo final."
+        )
+    else:
+        checkpoint = torch.load(best_path, map_location=device)
+        model.load_state_dict(checkpoint["model_state_dict"])
     test_metrics = run_epoch(
         model,
         test_loader,

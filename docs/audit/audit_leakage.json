@@ -1,0 +1,59 @@
+{
+  "n_train": 600,
+  "n_test": 340,
+  "train_label_balance": {
+    "0": 300,
+    "1": 300
+  },
+  "test_label_balance": {
+    "1": 175,
+    "0": 165
+  },
+  "tiny_baseline_label": {
+    "logreg_test_auc": 1.0,
+    "logreg_test_acc": 0.9941176470588236,
+    "rf_test_auc": 0.998943722943723,
+    "rf_test_acc": 0.9882352941176471,
+    "rf_feature_importance": {
+      "nz_frac_t1": 0.17365172840341578,
+      "p75_t1": 0.17055122339973414,
+      "p25_t2": 0.1252449522980603,
+      "nz_frac_t2": 0.10063854863961866,
+      "p01_t2": 0.07313738996224942,
+      "p99_t1": 0.06851848832525533,
+      "p50_t1": 0.06228274296999989,
+      "p01_t1": 0.06172557917846608,
+      "p25_t1": 0.040929846195515984,
+      "p99_t2": 0.039018572588265014,
+      "p50_t2": 0.02698539207254427,
+      "p75_t2": 0.026203753358256247,
+      "mean_t1": 0.00968403211615706,
+      "mean_t2": 0.009467112721273478,
+      "std_t1": 0.007313597213718155,
+      "std_t2": 0.004647040557470299
+    }
+  },
+  "dataset_origin_classifier": {
+    "rf_dataset_test_acc": 0.9852941176470589,
+    "n_classes": 4
+  },
+  "exact_duplicates_cross_split": {
+    "n_duplicate_groups": 0,
+    "n_cross_split_groups": 0,
+    "groups": []
+  },
+  "label_equals_dataset": {
+    "brats": [
+      1
+    ],
+    "ixi": [
+      0
+    ],
+    "nki_rockland": [
+      0
+    ],
+    "upenn": [
+      1
+    ]
+  }
+}
