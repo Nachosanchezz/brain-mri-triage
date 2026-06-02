@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curso · TFG brain-mri-triage</title>
+<style>
+  :root{
+    --bg:#0e1217; --side:#0b0f14; --panel:#161c24; --panel2:#1c2530; --ink:#e9eef4;
+    --muted:#9aa7b4; --line:#2a3441; --accent:#4ea1ff; --green:#3fb950; --yellow:#d29922;
+    --red:#f85149; --purple:#d2a8ff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex;min-height:100vh}
+  a{color:var(--accent)}
+  code{background:#0b0f14;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
+    font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.85em;color:#a5d6ff}
+  nav{background:var(--side);border-right:1px solid var(--line);width:280px;flex:0 0 280px;
+    padding:18px 14px;position:sticky;top:0;height:100vh;overflow-y:auto}
+  nav h1{font-size:1.05rem;margin:0 0 2px}
+  nav .sub{color:var(--muted);font-size:.78rem;margin:0 0 14px;line-height:1.4}
+  .navbtn{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;
+    border:1px solid transparent;color:var(--ink);border-radius:8px;padding:9px 10px;cursor:pointer;
+    font-size:.9rem;margin-bottom:3px}
+  .navbtn:hover{background:var(--panel)}
+  .navbtn.active{background:var(--panel2);border-color:var(--accent)}
+  .navbtn .ic{flex:0 0 22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    font-size:.75rem;background:#222c38;color:var(--muted);border:1px solid var(--line)}
+  .navbtn.passed .ic, .navbtn .ic.done{background:#1a3d22;color:var(--green);border-color:#2ea043}
+  .navprog{margin:6px 0 14px}
+  .bar{height:9px;background:var(--panel);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .bar>div{height:100%;width:0;background:linear-gradient(90deg,#2ea043,#3fb950);transition:width .3s}
+  .navprog small{color:var(--muted);font-size:.75rem}
+  .reset{margin-top:8px;background:var(--panel);color:var(--muted);border:1px solid var(--line);
+    border-radius:6px;padding:5px 9px;cursor:pointer;font-size:.74rem;width:100%}
+  .reset:hover{color:var(--ink)}
+  main{flex:1;min-width:0;padding:30px 36px 90px;max-width:880px;margin:0 auto}
+  .crumb{color:var(--muted);font-size:.8rem;letter-spacing:.05em;text-transform:uppercase}
+  h2.tt{font-size:1.7rem;margin:.1em 0 .5em}
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin:6px 0 18px;border-bottom:1px solid var(--line)}
+  .tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);
+    padding:9px 14px;cursor:pointer;font-size:.92rem;font-weight:600}
+  .tab.active{color:var(--ink);border-bottom-color:var(--accent)}
+  .layer{display:none} .layer.active{display:block}
+  .apuntes h3{font-size:1.15rem;margin:1.4em 0 .3em;color:#cfe3ff}
+  .apuntes p{margin:.5em 0} .apuntes ul{margin:.4em 0 .9em;padding-left:22px} .apuntes li{margin:.28em 0}
+  .key{background:var(--panel2);border-left:3px solid var(--accent);border-radius:8px;padding:10px 14px;margin:14px 0}
+  .key b{color:#cfe3ff}
+  .warn{background:#1f1a10;border-left:3px solid var(--yellow);border-radius:8px;padding:10px 14px;margin:14px 0}
+  .num{color:#79c0ff;font-weight:600;white-space:nowrap}
+  .src{color:var(--muted);font-size:.82rem}
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.88rem;min-width:460px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2)} tr:nth-child(even) td{background:#12181f}
+  /* mini-lessons (en profundidad) */
+  .ml{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--purple);
+    border-radius:10px;padding:13px 16px;margin:14px 0}
+  .ml-h{font-weight:700;color:var(--purple);margin-bottom:5px;font-size:1.05rem}
+  .formula{background:#0b0f14;border:1px solid var(--line);border-radius:8px;padding:10px 14px;
+    margin:9px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.92rem;color:#ffd9a8;
+    text-align:center;overflow-x:auto}
+  .why2{font-size:.9rem;color:var(--muted);margin-top:6px}
+  .why2 b{color:var(--green)}
+  .recursos{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:22px 0}
+  .recursos h4{margin:.2em 0 .5em;color:var(--muted);font-size:.8rem;letter-spacing:.05em;text-transform:uppercase}
+  .recursos ul{margin:0;padding-left:20px}
+  .quiz{margin-top:34px;border-top:2px solid var(--line);padding-top:22px}
+  .quiz h3{font-size:1.3rem;margin:0 0 4px}
+  .quiz .lead{color:var(--muted);font-size:.9rem;margin:0 0 16px}
+  .q{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:12px 0}
+  .q .qt{font-weight:600;margin-bottom:8px}
+  .badge{font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:8px;vertical-align:middle}
+  .badge.hard{background:#3a1d3d;color:#e79cff;border:1px solid #8957e5}
+  .opt{display:flex;gap:10px;align-items:flex-start;padding:7px 10px;border:1px solid var(--line);
+    border-radius:8px;margin:6px 0;cursor:pointer;background:#10151c}
+  .opt:hover{border-color:var(--accent)}
+  .opt input{margin-top:3px}
+  .opt.correct{border-color:#2ea043;background:#10200f}
+  .opt.wrong{border-color:var(--red);background:#1f1011}
+  .exp{margin-top:8px;font-size:.88rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px;display:none}
+  .exp.show{display:block} .exp b{color:var(--green)}
+  .qbtns{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  button.primary{background:var(--accent);color:#04101f;border:none;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 14px;cursor:pointer}
+  .score{font-weight:700} .score.ok{color:var(--green)} .score.no{color:var(--yellow)}
+  .navfoot{display:flex;justify-content:space-between;margin-top:40px;gap:10px}
+  .navfoot button{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:10px 14px;cursor:pointer;font-size:.9rem}
+  .navfoot button:hover{border-color:var(--accent)} .navfoot button:disabled{opacity:.35;cursor:default}
+  @media(max-width:820px){
+    body{flex-direction:column}
+    nav{width:auto;flex:none;height:auto;position:static;border-right:none;border-bottom:1px solid var(--line)}
+    main{padding:22px 18px 80px}
+  }
+</style>
+</head>
+<body>
+<nav>
+  <h1>📘 Curso TFG</h1>
+  <p class="sub"><code>brain-mri-triage</code> · de "clasificador perfecto" a auditoría de validez</p>
+  <div class="navprog">
+    <div class="bar"><div id="bar"></div></div>
+    <small id="progtxt">0 / 0 temas aprobados</small>
+  </div>
+  <div id="nav"></div>
+  <button class="reset" onclick="resetAll()">Reiniciar progreso</button>
+</nav>
+<main id="main"></main>
+
+<script>
+/* ===========================================================
+   CONTENIDO. resumen = narrativa · profundo = fundamentos.
+   Cifras verificadas contra los JSON del repositorio.
+   =========================================================== */
+const TEMAS = [
+{
+  id:"t0", titulo:"La historia del proyecto", etiqueta:"Tema 0",
+  resumen:`
+  <p>Este TFG empezó como un <b>sistema de triaje de RM cerebral</b>: clasificar cada estudio como
+  <b>tumor / no tumor</b> a partir de T1 y T2, para <b>priorizar</b> la lectura del radiólogo (no
+  diagnosticar). En triaje, la <b>sensibilidad</b> es la métrica crítica: el coste de no priorizar un
+  tumor (falso negativo) es mucho mayor que el de priorizar un sano.</p>
+  <div class="key"><b>Resultado que disparó la alarma:</b> AUC <span class="num">0.99997</span>,
+  sensibilidad <span class="num">0.994</span>, especificidad <span class="num">1.0</span>,
+  con 1 falso negativo y 0 falsos positivos en 340 estudios. <span class="src">(cnn3d_test_results.json)</span></div>
+  <p>En un problema clínico real eso es <b>implausible</b>. La sospecha reorientó el trabajo de
+  "¿buen clasificador?" a <b>"¿por qué parece perfecto?"</b>. La auditoría reveló un <b>confound
+  dominio↔clase</b>: la etiqueta coincide al 100&nbsp;% con el dataset de origen.</p>
+  <div class="key"><b>Aportación final:</b> no un detector validado, sino una demostración reproducible
+  de <b>aprendizaje espurio</b> + un <b>protocolo de auditoría</b> reutilizable.</div>`,
+  profundo:`
+  <div class="ml"><div class="ml-h">Formalización del problema</div>
+    <p><b>Intuición:</b> un clasificador es una función que asigna a cada estudio una probabilidad de
+    tumor, y luego una regla decide a partir de un umbral τ.</p>
+    <div class="formula">f(x) = P(y=1 | x) ∈ [0,1] &nbsp;→&nbsp; decisión ŷ = 1 si f(x) ≥ τ</div>
+    <p class="why2"><b>Por qué importa en tu TFG:</b> separar <i>el modelo</i> f (que ordena los casos)
+    de <i>el umbral</i> τ (la regla operativa) es clave: tú evalúas la calidad de la ordenación con la
+    AUC (independiente de τ) y eliges τ en validación según la sensibilidad clínica.</p></div>
+  <div class="ml"><div class="ml-h">Compromiso sensibilidad–especificidad y prevalencia</div>
+    <p><b>Intuición:</b> subir τ reduce falsos positivos pero pierde tumores; bajarlo, al revés. Además,
+    el valor predictivo positivo depende de cuántos tumores haya realmente (prevalencia).</p>
+    <div class="formula">Sen = TP/(TP+FN) &nbsp;·&nbsp; Esp = TN/(TN+FP) &nbsp;·&nbsp; PPV = P(y=1|ŷ=1) depende de la prevalencia</div>
+    <p class="why2"><b>Por qué importa:</b> en triaje priorizas <b>sensibilidad</b> y eliges τ para no
+    perder tumores; y debes saber que un PPV alto en tu test (50% tumores) no se traslada a un servicio
+    real con baja prevalencia. El tribunal puede preguntártelo.</p></div>
+  <div class="ml"><div class="ml-h">"Demasiado bueno para ser verdad" = hipótesis, no conclusión</div>
+    <p><b>Intuición:</b> una métrica sospechosa no demuestra nada por sí sola; es el punto de partida de
+    una investigación que intenta <b>falsar</b> la hipótesis optimista ("detecta tumor").</p>
+    <p class="why2"><b>Por qué importa:</b> tu trabajo es metodológicamente fuerte porque no afirmó el
+    éxito: diseñó pruebas para tumbarlo. Eso es pensamiento científico, y es lo que defiendes.</p></div>`,
+  recursos:`<h4>Para ampliar</h4><ul><li><code>reconstruccion_evolucion_tfg.md</code> §1, §24</li>
+    <li><code>auditoria_resultados_sospechosos.md</code> §1, §11</li></ul>`,
+  quiz:[
+    {q:"¿Cuál es el papel clínico del sistema?",opts:["Diagnóstico que sustituye al radiólogo","Triaje / priorización como apoyo","Segmentación del tumor","Predicción de supervivencia"],ok:1,exp:"Es priorización, no diagnóstico."},
+    {q:"¿Por qué un AUC ≈ 1.0 hizo saltar las alarmas?",opts:["El modelo era pequeño","En un problema clínico real una separación casi perfecta es implausible","Faltaban datos de test","La sensibilidad era baja"],ok:1,exp:"Sospecha de artefacto, no de detección real."},
+    {q:"¿Cuál es la aportación final del TFG?",opts:["Un detector clínico validado","Demostrar/documentar aprendizaje espurio + protocolo de auditoría","Un dataset nuevo","Una arquitectura novedosa"],ok:1,exp:"El valor está en la auditoría honesta."},
+    {q:"La AUC es independiente del umbral τ, pero el PPV no es estable. ¿De qué depende el PPV?",hard:true,opts:["Solo del modelo","De la prevalencia de la enfermedad en la población evaluada","Del número de épocas","De la arquitectura"],ok:1,exp:"Por Bayes, PPV depende de la prevalencia; un PPV alto con 50% de tumores no se traslada a baja prevalencia."},
+    {q:"¿Por qué 'demasiado bueno para ser verdad' se trata como hipótesis y no como conclusión?",hard:true,opts:["Porque siempre es un bug","Porque una métrica anómala solo motiva pruebas que intenten falsar la explicación optimista","Porque hay que repetir el entrenamiento","Porque la AUC no sirve"],ok:1,exp:"El método científico exige intentar refutar; de ahí la batería de auditorías."}
+  ]
+},
+{
+  id:"t1", titulo:"Datos y confound (la causa raíz)", etiqueta:"Tema 1",
+  resumen:`
+  <p>El problema NO está en el modelo: está en <b>cómo están compuestos los datos</b>.</p>
+  <div class="scroll"><table>
+    <tr><th>Dataset</th><th>Clase</th><th>n</th><th>Modalidades</th></tr>
+    <tr><td>BraTS 2021</td><td>Tumor (1)</td><td>580</td><td>T1+T2</td></tr>
+    <tr><td>UPENN-GBM</td><td>Tumor (1)</td><td>587</td><td>T1+T2</td></tr>
+    <tr><td>IXI</td><td>Sano (0)</td><td>577</td><td>T1+T2</td></tr>
+    <tr><td>NKI Rockland</td><td>Sano (0)</td><td>523</td><td>T1+T2</td></tr>
+    <tr><td>BTC_preop (ds001226)</td><td>Mixto</td><td>25 / 11</td><td>T1-only</td></tr>
+  </table></div>
+  <p class="src">Pool: 1167 positivos / 1100 negativos = 2267 (preprocessing_summary.json).</p>
+  <div class="key"><b>Hecho central:</b> <code>label=1 ⟺ dataset∈{BraTS,UPENN}</code> y
+  <code>label=0 ⟺ dataset∈{IXI,NKI}</code> → <b>correlación clase↔dataset del 100&nbsp;%</b>.</div>
+  <p>Preprocesado homogéneo: DICOM→NIfTI → <b>HD-BET</b> (IXI/NKI/BTC) → RAS → 1&nbsp;mm³ →
+  crop/pad (192,224,192) → <b>z-score con máscara Otsu</b>. Otsu corrigió el "shell" de UPENN (66%→22% de vóxeles no-cero).</p>
+  <div class="warn"><b>Matiz:</b> Otsu corrige intensidad <i>intra-clase</i>; NO el confound estructural.</div>
+  <p>El split está bien: agrupado por <code>subject_id</code>, estratificado por (dataset,label), seed 42, 0 solapamiento.</p>
+  <div class="key"><b>Idea clave:</b> un split perfecto NO salva el experimento. El problema no es cómo
+  repartes, sino qué representa la etiqueta. Si <code>label≡dataset</code>, todas las particiones heredan el confound.</div>`,
+  profundo:`
+  <div class="ml"><div class="ml-h">Confound: definición causal</div>
+    <p><b>Intuición:</b> un confusor C es una variable que influye a la vez en la entrada X y en la
+    etiqueta Y, creando una correlación X–Y que no es causal. Aquí C = el dataset/escáner.</p>
+    <div class="formula">P(Y=1 | D=BraTS o UPENN) = 1 &nbsp;,&nbsp; P(Y=1 | D=IXI o NKI) = 0</div>
+    <p><b>Intuición 2:</b> el dataset determina la etiqueta de forma <i>perfecta</i>; en teoría de la
+    información, la información mutua I(D;Y) = H(Y) (el dominio "explica" toda la entropía de la clase).</p>
+    <p class="why2"><b>Por qué importa:</b> es la raíz matemática de todo. Mientras D determine Y, ninguna
+    técnica que opere sobre X puede separar "señal de tumor" de "señal de dominio".</p></div>
+  <div class="ml"><div class="ml-h">Normalización z-score (por qué y sobre qué)</div>
+    <p><b>Intuición:</b> las intensidades de RM no tienen escala física absoluta; el z-score las lleva a
+    media 0 y desviación 1 para que sean comparables entre escáneres.</p>
+    <div class="formula">z = (x − μ) / σ &nbsp; (μ, σ calculadas SOLO sobre la máscara de tejido)</div>
+    <p class="why2"><b>Por qué importa:</b> si μ y σ se calculan incluyendo el fondo (o el "shell" de
+    UPENN), la escala queda contaminada y aparece una firma de dominio. De ahí la importancia de la máscara.</p></div>
+  <div class="ml"><div class="ml-h">Umbral de Otsu</div>
+    <p><b>Intuición:</b> Otsu busca el umbral t que mejor separa dos poblaciones de intensidad (fondo/shell
+    vs tejido) maximizando la <b>varianza entre clases</b>.</p>
+    <div class="formula">t* = argmax<sub>t</sub> &nbsp; σ²<sub>B</sub>(t) = ω₀(t)·ω₁(t)·[μ₀(t) − μ₁(t)]²</div>
+    <p class="why2"><b>Por qué importa:</b> en UPENN el método antiguo (percentil 5) metía el "shell" gris
+    en la máscara; Otsu lo corta y deja solo tejido, igualando UPENN a BraTS/IXI/NKI <i>dentro</i> de la clase positiva.</p></div>
+  <div class="ml"><div class="ml-h">Leakage y split por sujeto</div>
+    <p><b>Intuición:</b> data leakage = información del test se "cuela" en el entrenamiento, inflando
+    métricas. Si dos imágenes del mismo paciente caen en train y test, el modelo memoriza al sujeto.</p>
+    <p class="why2"><b>Por qué importa:</b> agrupar por <code>subject_id</code> y estratificar por
+    (dataset,label) descarta este leakage — y al descartarlo, <b>refuerza</b> tu tesis: el problema no es
+    una fuga trivial, es el confound estructural.</p></div>`,
+  recursos:`<h4>Código y docs</h4><ul>
+    <li><b>A fondo:</b> <code>dataset_3d.py</code> (create_splits, BrainMRI3DDataset)</li>
+    <li><code>base_preprocessing.py</code> → <code>normalize_intensity</code> (Otsu) · <code>audit_splits.py</code></li></ul>`,
+  quiz:[
+    {q:"¿Cuántos datasets del pool aportan ambas clases?",opts:["Cuatro","Dos","Uno","Ninguno"],ok:3,exp:"Ninguno; de ahí la correlación 100%."},
+    {q:"¿La partición por sujeto resuelve el problema?",opts:["Sí, elimina el confound","No: el problema es qué representa la etiqueta","Sí, evita el overfitting","Solo con otra semilla"],ok:1,exp:"Un split impecable sobre datos confundidos sigue confundido."},
+    {q:"¿Qué corrige el umbral de Otsu?",opts:["El confound dominio↔clase","El desajuste de intensidad del 'shell' de UPENN intra-clase","El desbalance de clases","El leakage de sujeto"],ok:1,exp:"Homogeneíza intensidad intra-clase; no toca el confound."},
+    {q:"En términos de teoría de la información, ¿qué relación hay entre dominio D y clase Y aquí?",hard:true,opts:["I(D;Y)=0 (independientes)","I(D;Y)=H(Y): el dominio determina por completo la etiqueta","Y determina D pero no al revés","No es cuantificable"],ok:1,exp:"P(Y|D) es determinista, así que el dominio explica toda la entropía de la clase."},
+    {q:"¿Por qué la media y la desviación del z-score se calculan solo sobre la máscara de tejido?",hard:true,opts:["Para ir más rápido","Porque incluir fondo/shell contamina μ y σ y crea una firma de dominio","Porque el fondo es ruido aleatorio","Porque lo exige nibabel"],ok:1,exp:"Si μ,σ incluyen el shell de UPENN, la escala queda sesgada por dominio."},
+    {q:"Otsu elige el umbral que…",hard:true,opts:["minimiza la varianza total","maximiza la varianza ENTRE las dos clases de intensidad","iguala las dos medias","maximiza la entropía"],ok:1,exp:"σ²_B(t)=ω₀ω₁(μ₀−μ₁)²; se maximiza sobre t."}
+  ]
+},
+{
+  id:"t2", titulo:"El modelo y el entrenamiento", etiqueta:"Tema 2",
+  resumen:`
+  <p>Defender que el modelo está <b>bien hecho</b> es lo que demuestra que el AUC≈1.0 <b>no es un bug</b>.</p>
+  <h3><code>BrainTumorCNN3D</code></h3>
+  <ul>
+    <li>Entrada <b>(2,128,160,128)</b> (T1, T2).</li>
+    <li>4 bloques conv 3D, canales <b>12→24→48→96</b>, con <code>GroupNorm</code>+ReLU y <code>MaxPool3d</code>.</li>
+    <li><code>AdaptiveAvgPool3d(1)</code> → FC 96→96→<b>1 logit</b>; P(tumor)=<code>sigmoid(logit)</code>.</li>
+    <li>Parámetros: <span class="num">504 553</span> (504 229 en 1 canal).</li>
+  </ul>
+  <div class="key"><b>GroupNorm, no BatchNorm:</b> con <code>batch_size=1</code> las estadísticas de
+  BatchNorm son ruido; GroupNorm no depende del batch.</div>
+  <h3>Entrenamiento</h3>
+  <ul>
+    <li><code>BCEWithLogitsLoss</code>, <code>pos_weight=1.0</code>; AdamW, lr 5e-5, wd 1e-3, cosine, AMP off.</li>
+    <li>Augmentation (flips+gamma+ruido) solo sobre vóxeles ≠0.</li>
+    <li>Checkpoint por <b>balanced_accuracy con sensibilidad ≥ 0.80</b>; test una sola vez al final.</li>
+  </ul>`,
+  profundo:`
+  <div class="ml"><div class="ml-h">Convolución 3D y campo receptivo</div>
+    <p><b>Intuición:</b> un kernel 3D pequeño se desliza por el volumen detectando patrones locales; al
+    apilar capas y pooling, cada neurona "ve" una región cada vez mayor (campo receptivo). Los pesos se
+    comparten en todo el volumen (equivarianza a traslación).</p>
+    <div class="formula">params(conv) = K³ · C<sub>in</sub> · C<sub>out</sub> &nbsp; (aquí K=3, sin bias)</div>
+    <p class="why2"><b>Por qué importa:</b> justifica por qué una CNN 3D es adecuada para volúmenes (capta
+    estructura espacial) y por qué tiene pocos parámetros (504k) pese a la entrada enorme: comparte pesos.</p></div>
+  <div class="ml"><div class="ml-h">BatchNorm vs GroupNorm (la clave del batch=1)</div>
+    <p><b>Intuición:</b> ambas normalizan activaciones a media 0 / var 1 y luego reescalan. La diferencia
+    es <b>sobre qué</b> se calcula la media: BatchNorm sobre el lote (N muestras); GroupNorm sobre grupos
+    de canales <i>dentro de una sola muestra</i>.</p>
+    <div class="formula">ŷ = γ · (x − μ)/√(σ² + ε) + β</div>
+    <p>Con N=1, la μ,σ de BatchNorm se calculan sobre <b>una sola muestra</b> → estadística degenerada y
+    <i>running stats</i> que no convergen. GroupNorm es independiente de N.</p>
+    <p class="why2"><b>Por qué importa:</b> es la pregunta de tribunal más probable sobre tu arquitectura.
+    Resolvió el enorme gap train/val que tenías (documentado en justificacion_cambios.md, paso 4).</p></div>
+  <div class="ml"><div class="ml-h">Logit, sigmoide y BCEWithLogitsLoss</div>
+    <p><b>Intuición:</b> la red emite un número real (logit); la sigmoide lo convierte en probabilidad;
+    la pérdida penaliza la divergencia con la etiqueta.</p>
+    <div class="formula">σ(z)=1/(1+e<sup>−z</sup>) &nbsp;·&nbsp; L = −[ y·log σ(z) + (1−y)·log(1−σ(z)) ]</div>
+    <p><code>BCEWithLogitsLoss</code> aplica la sigmoide y la BCE juntas de forma numéricamente estable
+    (log-sum-exp). <code>pos_weight</code> multiplica el término de los positivos (aquí 1.0 = neutro).</p>
+    <p class="why2"><b>Por qué importa:</b> debes saber por qué 1 logit + sigmoide (binario) en vez de
+    2 logits + softmax, y por qué pos_weight=1 (clases equilibradas, descarta "el loss favorece tumor").</p></div>
+  <div class="ml"><div class="ml-h">Selección de checkpoint por balanced accuracy</div>
+    <p><b>Intuición:</b> guardar por AUC podía premiar un modelo que dijera "todo tumor" (especificidad 0).</p>
+    <div class="formula">balanced_acc = (Sen + Esp) / 2 &nbsp; , &nbsp; guardar solo si Sen ≥ 0.80</div>
+    <p class="why2"><b>Por qué importa:</b> demuestra rigor metodológico: optimizas una métrica clínica
+    robusta al desbalance, no una que admita soluciones triviales.</p></div>`,
+  recursos:`<h4>Código y docs</h4><ul><li><b>A fondo:</b> <code>cnn3d.py</code></li>
+    <li><code>train_3d.py</code> · <code>configs/train_3d.yaml</code> · <code>justificacion_cambios.md</code></li></ul>`,
+  quiz:[
+    {q:"¿Por qué GroupNorm en vez de BatchNorm?",opts:["Más rápida","Con batch_size=1 BatchNorm es inestable","Reduce parámetros","Lo exige PyTorch en 3D"],ok:1,exp:"Estadísticas de batch=1 son ruido."},
+    {q:"¿Cuántos parámetros tiene el modelo (2 canales)?",opts:["≈11 M","≈200 000","≈504 000","≈2 M"],ok:2,exp:"504 553 (verificado)."},
+    {q:"¿Según qué criterio se guarda el mejor checkpoint?",opts:["Mayor AUC","Balanced accuracy con sensibilidad ≥ 0.80","Menor train loss","Mayor exactitud en test"],ok:1,exp:"Evita modelos triviales con especificidad 0."},
+    {q:"¿Por qué GroupNorm no se degrada con batch=1 y BatchNorm sí?",hard:true,opts:["GroupNorm no normaliza","GroupNorm calcula μ,σ sobre grupos de canales dentro de cada muestra, sin depender de N","BatchNorm usa más memoria","Son idénticas"],ok:1,exp:"BatchNorm promedia sobre el lote (N=1 ⇒ degenerado); GroupNorm es intra-muestra."},
+    {q:"¿Por qué se usa BCEWithLogitsLoss y no aplicar sigmoide + BCE por separado?",hard:true,opts:["Por estética","Por estabilidad numérica (combina sigmoide y BCE con log-sum-exp)","Porque es más rápida de escribir","Porque evita el sobreajuste"],ok:1,exp:"Fusionarlas evita overflow/underflow en la exponencial."},
+    {q:"El modelo tiene pocos parámetros (504k) pese a una entrada enorme. ¿Por qué?",hard:true,opts:["Porque usa dropout","Por el compartido de pesos de la convolución (mismo kernel en todo el volumen)","Porque la entrada está comprimida","Porque no tiene capas FC"],ok:1,exp:"La convolución comparte el kernel espacialmente: pocos pesos, muchas activaciones."}
+  ]
+},
+{
+  id:"t3", titulo:"La evaluación y por qué engaña", etiqueta:"Tema 3",
+  resumen:`
+  <p>La evaluación está técnicamente bien; lo importante es <b>leer las métricas con ojo crítico</b>.</p>
+  <div class="scroll"><table>
+    <tr><th>Métrica</th><th>Valor</th></tr>
+    <tr><td>AUC / PR-AUC</td><td class="num">0.99997 / 0.99997</td></tr>
+    <tr><td>Sen / Esp</td><td class="num">0.994 / 1.0</td></tr>
+    <tr><td>Confusión</td><td>TP 174 · FP 0 · TN 165 · FN 1</td></tr>
+  </table></div>
+  <p>Único FN: <code>BraTS2021_00736</code> (score 0.092).</p>
+  <div class="key"><b>Dos señales de alarma:</b> (1) varianza intra-dataset casi nula (UPENN ±0.0005);
+  (2) <b>AUC intra-dataset = NaN</b> en los 4 (cada dataset es mono-clase).</div>`,
+  profundo:`
+  <div class="ml"><div class="ml-h">ROC y AUC: definición e interpretación probabilística</div>
+    <p><b>Intuición:</b> la curva ROC barre todos los umbrales y dibuja TPR (sensibilidad) frente a FPR
+    (1−especificidad). La AUC es el área bajo esa curva.</p>
+    <div class="formula">AUC = P( score(x⁺) > score(x⁻) ) &nbsp;=&nbsp; U / (n⁺·n⁻)</div>
+    <p>Es decir, la probabilidad de que un positivo al azar reciba mayor score que un negativo al azar
+    (estadístico U de Mann-Whitney). Por eso el código la calcula por <b>rangos</b>:</p>
+    <div class="formula">AUC = ( R⁺ − n⁺(n⁺+1)/2 ) / ( n⁺·n⁻ )</div>
+    <p class="why2"><b>Por qué importa:</b> AUC = 0.5 es azar; <b>AUC &lt; 0.5 = ordenación invertida</b>
+    (clave para entender LODO B en el Tema 4). Y es <b>independiente del umbral</b>: mide la ordenación.</p></div>
+  <div class="ml"><div class="ml-h">¿Por qué AUC y no accuracy?</div>
+    <p><b>Intuición:</b> la exactitud depende del umbral y del balance de clases; con clases
+    desequilibradas, predecir siempre la mayoritaria da exactitud alta y es inútil.</p>
+    <p class="why2"><b>Por qué importa:</b> justifica reportar AUC + sensibilidad/especificidad +
+    matriz de confusión, no solo accuracy. PR-AUC es preferible cuando los positivos son raros.</p></div>
+  <div class="ml"><div class="ml-h">Por qué la AUC intra-dataset es indefinida</div>
+    <p><b>Intuición:</b> la AUC necesita <b>ambas clases</b>. Si un dataset solo tiene tumores, n⁻ = 0.</p>
+    <div class="formula">denominador = n⁺ · n⁻ = n⁺ · 0 = 0 &nbsp;→&nbsp; AUC indefinida (NaN)</div>
+    <p class="why2"><b>Por qué importa:</b> esa imposibilidad <b>es</b> la prueba: la única partición sobre
+    la que el modelo "se mide" es la de dataset. No es un fallo del código; es un síntoma del confound.</p></div>
+  <div class="ml"><div class="ml-h">Varianza intra-dataset ≈ 0 como diagnóstico</div>
+    <p><b>Intuición:</b> un detector de lesión real daría scores variados (tumores sutiles vs evidentes).
+    Que UPENN tenga σ=0.0005 significa que la red da casi el mismo número a todas sus imágenes.</p>
+    <p class="why2"><b>Por qué importa:</b> es evidencia cuantitativa de que la red responde al
+    <i>dataset</i>, no al <i>contenido</i> de cada estudio.</p></div>`,
+  recursos:`<h4>Código y docs</h4><ul><li><code>evaluate_3d.py</code> · <code>threshold_analysis.py</code></li>
+    <li><code>cnn3d_test_results.json</code> · <code>reconstruccion_evolucion_tfg.md</code> §10</li></ul>`,
+  quiz:[
+    {q:"¿Por qué la AUC por dataset sale NaN?",opts:["Error de redondeo","Cada dataset es mono-clase y la AUC necesita ambas clases","Pocos datos","Umbral 0.5"],ok:1,exp:"Sin las dos clases, denominador n⁺·n⁻=0."},
+    {q:"Varianza de scores ~0 dentro de cada dataset sugiere…",opts:["Buena calibración","Detección de dominio, no de contenido","Faltan épocas","Mal umbral"],ok:1,exp:"Mismo score a todo el dataset = detector de dominio."},
+    {q:"¿Dónde se elige el umbral?",opts:["En test","En validación, y se aplica a test","En entrenamiento","Siempre 0.5"],ok:1,exp:"Val→test, nunca al revés."},
+    {q:"¿Cuál es la interpretación probabilística de la AUC?",hard:true,opts:["La exactitud media","P(score de un positivo > score de un negativo), tomados al azar","La sensibilidad a τ=0.5","El área del histograma"],ok:1,exp:"AUC = U de Mann-Whitney / (n⁺n⁻); por eso se calcula por rangos."},
+    {q:"Una AUC de 0.20 (< 0.5) significa…",hard:true,opts:["Un error, la AUC no puede bajar de 0.5","Que la ordenación está invertida (el modelo separa, pero al revés)","Que no hay señal","Lo mismo que 0.80"],ok:1,exp:"AUC<0.5 = ordenación anti-correlacionada; relevante para LODO B."},
+    {q:"¿Por qué no basta con reportar accuracy?",hard:true,opts:["Es difícil de calcular","Depende del umbral y del balance de clases; puede ser alta y a la vez inútil","No la entiende el tribunal","Solo vale para regresión"],ok:1,exp:"Con desbalance, predecir la clase mayoritaria da accuracy alta y nula utilidad."}
+  ]
+},
+{
+  id:"t4", titulo:"La auditoría, pieza a pieza", etiqueta:"Tema 4",
+  resumen:`
+  <p>Cinco pruebas en forma de <b>embudo</b> (y es el orden del Cap. 7 de Resultados):</p>
+  <p><b>4a · Tiny baseline:</b> 16 features de intensidad → LogReg AUC <span class="num">1.0</span>;
+  clf de dataset acc <span class="num">0.985</span>; 0 duplicados/0 overlap. <i>La etiqueta se decodifica sin red.</i></p>
+  <p><b>4b · LODO:</b> A <span class="num">0.624</span> / B <span class="num">0.201</span> (invertido).
+  <i>No generaliza fuera de dominio.</i></p>
+  <p><b>4c · Intra-dominio BTC:</b> CNN <span class="num">0.404</span>, IC95% [0.21, 0.62]; tiny 0.549/0.405.
+  <i>Sin confound, cae al azar.</i></p>
+  <p><b>4d · Embeddings:</b> IXI-vs-NKI CV-AUC <span class="num">0.998</span>; clf dataset desde latente 0.982.
+  <i>Codifica procedencia, no tumor.</i></p>
+  <p><b>4e · Grad-CAM:</b> apoyo cualitativo (atención a bordes/fondo).</p>`,
+  profundo:`
+  <div class="ml"><div class="ml-h">4a · Por qué un baseline lineal es una prueba tan potente</div>
+    <p><b>Intuición:</b> la regresión logística traza una frontera <b>lineal</b> sobre las features.
+    Si con 16 estadísticos de intensidad alcanza AUC 1.0, las clases son linealmente separables por brillo.</p>
+    <div class="formula">P(y=1|x) = σ(wᵀx + b)</div>
+    <p class="why2"><b>Por qué importa:</b> es una <b>cota inferior trivial</b>: lo que un modelo lineal
+    ya resuelve no puede atribuirse a la "inteligencia espacial" de la CNN. Demuele la hipótesis optimista.</p></div>
+  <div class="ml"><div class="ml-h">4b · LODO como test fuera de distribución</div>
+    <p><b>Intuición:</b> entrenas en unos dominios y pruebas en otros nunca vistos. Si el modelo aprendió
+    tumor, transfiere; si aprendió dominio, falla. AUC&nbsp;&lt;&nbsp;0.5 = la regla se <b>invierte</b>.</p>
+    <p class="why2"><b>Por qué importa:</b> la asimetría (A≠B) y la inversión (B=0.201) son incompatibles
+    con un detector de lesión y típicas de un detector de firma de adquisición.</p></div>
+  <div class="ml"><div class="ml-h">4c · k-fold + bootstrap (lo más preguntable)</div>
+    <p><b>Intuición (k-fold):</b> con n pequeño (36) no puedes permitirte un test fijo; partes en k=5
+    bloques, entrenas en 4 y evalúas en 1, rotando. Agregas las predicciones.</p>
+    <p><b>Intuición (bootstrap):</b> remuestreas con reemplazo B=2000 veces, recalculas la AUC cada vez y
+    tomas los percentiles 2.5 y 97.5 → intervalo de confianza al 95&nbsp;%.</p>
+    <div class="formula">IC95% = [ percentil₂.₅(AUC*), percentil₉₇.₅(AUC*) ] = [0.21, 0.62]</div>
+    <p class="why2"><b>Por qué importa:</b> el IC <b>cruza 0.5</b> ⇒ no puedes rechazar H₀: "AUC = azar".
+    Por eso AUC=0.40 NO se lee como "peor que el azar", sino como <b>indistinguible del azar</b> con n=36.</p></div>
+  <div class="ml"><div class="ml-h">4d · PCA vs t-SNE y el coeficiente silhouette</div>
+    <p><b>PCA:</b> proyección <b>lineal</b> sobre las direcciones de máxima varianza (autovectores de la
+    covarianza). <b>t-SNE:</b> proyección <b>no lineal</b> que preserva vecindarios locales minimizando una
+    divergencia KL; <b>NO preserva distancias ni tamaños globales</b> entre clusters (depende de la perplejidad y es estocástico).</p>
+    <div class="formula">silhouette: s = (b − a) / max(a, b) ∈ [−1, 1]</div>
+    <p>donde a = distancia media intra-cluster y b = distancia media al cluster vecino más cercano.</p>
+    <p class="why2"><b>Por qué importa:</b> el tribunal puede objetar "el t-SNE engaña". Tu defensa: no te
+    apoyas solo en el dibujo; cuantificas con silhouette y, sobre todo, con un <b>clasificador lineal en CV</b>
+    (IXI-vs-NKI AUC 0.998) que es una medida objetiva de separabilidad del dominio.</p></div>
+  <div class="ml"><div class="ml-h">4e · Cómo funciona Grad-CAM (y su límite)</div>
+    <p><b>Intuición:</b> pondera cada mapa de activación de la última conv por cuánto influye en el score
+    (gradiente), los combina y aplica ReLU → mapa de calor de "dónde mira".</p>
+    <div class="formula">α<sub>k</sub> = mean<sub>vox</sub>(∂score/∂A<sup>k</sup>) &nbsp;;&nbsp; CAM = ReLU(Σ<sub>k</sub> α<sub>k</sub> A<sup>k</sup>)</div>
+    <p class="why2"><b>Por qué importa:</b> tras varios poolings el mapa es de <b>baja resolución</b>; es
+    cualitativo. Por eso se presenta como apoyo, no como prueba, y se lee junto a 4a–4d.</p></div>`,
+  recursos:`<h4>Código</h4><ul>
+    <li>4a <code>audit_leakage.py</code> · 4b <code>make_lodo_splits.py</code>,<code>audit_lodo.py</code></li>
+    <li>4c <code>btc_tiny_baseline.py</code>,<code>btc_cnn_kfold.py</code> · 4d <code>embeddings_*.py</code> · 4e <code>gradcam_3d.py</code></li></ul>`,
+  quiz:[
+    {q:"4a — ¿Qué demuestra que una LogReg sobre intensidad dé AUC 1.0?",opts:["La CNN está mal entrenada","La etiqueta es decodificable sin red ni anatomía","Faltan features clínicas","Hay duplicados"],ok:1,exp:"Cota inferior trivial: lo que resuelve un lineal no prueba detección."},
+    {q:"4b — AUC 0.201 en LODO B significa…",opts:["Modelo perfecto al revés","Regla invertida fuera de dominio","Error de cálculo","AUC alta"],ok:1,exp:"AUC<0.5 = predicciones invertidas."},
+    {q:"4c — AUC 0.404 con IC95% [0.21,0.62]. ¿Conclusión?",opts:["Peor que el azar significativamente","Indistinguible del azar (el IC cruza 0.5)","Detecta tumor","Nada"],ok:1,exp:"El IC cruza 0.5: no se rechaza H₀ de azar."},
+    {q:"4d — IXI-vs-NKI (ambos sanos) CV-AUC 0.998 indica…",opts:["Detecta tumor","El latente codifica procedencia incluso dentro de una clase","IXI tiene tumores ocultos","Modelo mal entrenado"],ok:1,exp:"Separar dos cohortes sanas = codificar el centro de origen."},
+    {q:"¿Qué hace exactamente el bootstrap para el IC95%?",hard:true,opts:["Entrena 2000 modelos distintos","Remuestrea con reemplazo, recalcula la AUC muchas veces y toma percentiles 2.5/97.5","Promedia los folds","Aumenta los datos de test"],ok:1,exp:"Estima la distribución muestral de la AUC por remuestreo."},
+    {q:"¿Por qué NO te apoyas solo en el dibujo de t-SNE para concluir?",hard:true,opts:["Porque es lento","Porque t-SNE no preserva distancias ni tamaños globales; lo respaldas con silhouette y un clasificador lineal en CV","Porque solo vale en 2D","Porque PCA es mejor siempre"],ok:1,exp:"t-SNE es local y estocástico; la prueba objetiva es el clf lineal (AUC 0.998)."},
+    {q:"El coeficiente silhouette s=(b−a)/max(a,b). ¿Qué mide a y b?",hard:true,opts:["a=accuracy, b=AUC","a=distancia media intra-cluster, b=distancia media al cluster vecino","a y b son hiperparámetros","Son tasas de error"],ok:1,exp:"Compara cohesión interna (a) con separación al vecino (b); rango [−1,1]."}
+  ]
+},
+{
+  id:"t5", titulo:"Marco teórico: shortcut learning", etiqueta:"Tema 5",
+  resumen:`
+  <p>Tu hallazgo es un caso de un fenómeno conocido; encuadrarlo lo convierte en contribución sólida.</p>
+  <p><b>Shortcut learning:</b> las redes aprenden atajos que funcionan en la distribución vista pero no
+  capturan el concepto y fallan al cambiar de distribución. Aquí el atajo es "¿de qué dataset viene?".</p>
+  <p><b>Antecedentes:</b> Zech 2018 (confound entre hospitales en rayos X); DeGrave 2021 (atajos en COVID).</p>
+  <div class="key"><b>Argumento clave:</b> armonización (ComBat) y domain-adversarial asumen
+  descorrelación parcial dominio-clase. Aquí dominio≡clase al 100%: quitar el dominio quita la etiqueta.
+  La única solución real es tener <b>ambas clases dentro del mismo dominio</b>.</div>`,
+  profundo:`
+  <div class="ml"><div class="ml-h">Atajo vs señal causal</div>
+    <p><b>Intuición:</b> un atajo es una variable predictiva pero no causal: correlaciona con Y en train,
+    pero la relación se rompe bajo cambio de distribución. La señal causal (la lesión) se mantendría.</p>
+    <p class="why2"><b>Por qué importa:</b> explica por qué tus métricas internas son altas y la
+    generalización (LODO, intra-dominio) se hunde: clásico de shortcut learning.</p></div>
+  <div class="ml"><div class="ml-h">Por qué la adaptación de dominio NO sirve aquí</div>
+    <p><b>Intuición:</b> el domain-adversarial training (p. ej. gradient reversal) entrena la red para que
+    sus features <b>no</b> permitan predecir el dominio, conservando la señal de clase. Eso requiere que
+    dominio y clase no sean la misma variable.</p>
+    <div class="formula">si I(D;Y) = H(Y) (dominio determina la clase) ⇒ eliminar D elimina Y</div>
+    <p class="why2"><b>Por qué importa:</b> es la respuesta a la pregunta-trampa del tribunal "¿y por qué
+    no aplicaste armonización/adversarial?". No es pereza: es <b>imposible por construcción</b> con un
+    confound del 100%. Lo correcto es cambiar los datos (BTC), no el algoritmo.</p></div>
+  <div class="ml"><div class="ml-h">Validación externa y cambio de distribución</div>
+    <p><b>Intuición:</b> un modelo clínico debe validarse en datos de otra distribución (otro centro). La
+    caída de rendimiento al cambiar de dominio es el test definitivo de si aprendió lo correcto.</p>
+    <p class="why2"><b>Por qué importa:</b> tu LODO e intra-dominio son, de hecho, formas de validación de
+    cambio de distribución; conectan tu trabajo con la literatura de generalización en IA médica.</p></div>`,
+  recursos:`<h4>Lectura (verificar en docs/referencias.md)</h4><ul>
+    <li>Geirhos 2020 (shortcut learning) · Zech 2018 · DeGrave 2021</li>
+    <li>ComBat (Johnson 2007 / Fortin 2017), Ganin 2016 (domain-adversarial)</li></ul>`,
+  quiz:[
+    {q:"¿Qué es 'shortcut learning'?",opts:["Entrenar pocas épocas","Aprender reglas que valen en la distribución vista pero no capturan el concepto","Una regularización","Usar un modelo pequeño"],ok:1,exp:"Atajos predictivos no causales que fallan fuera de distribución."},
+    {q:"¿Qué antecedente clínico ilustra el mismo fenómeno?",opts:["Esteva 2017","Zech 2018 (rayos X entre hospitales)","Litjens 2017","Maaten 2008"],ok:1,exp:"Generalización pobre por aprender firmas del hospital."},
+    {q:"¿Por qué el domain-adversarial training NO resuelve tu confound?",hard:true,opts:["Es obsoleto","Asume descorrelación parcial dominio-clase; con dominio≡clase, quitar el dominio quita la etiqueta","Necesita más GPU","Solo vale en 2D"],ok:1,exp:"I(D;Y)=H(Y) ⇒ no hay señal de clase separable del dominio."},
+    {q:"¿Cuál es la única solución real al confound?",hard:true,opts:["Más épocas","Una red mayor","Datos con ambas clases dentro del mismo dominio (cambiar los datos, no el algoritmo)","Otra pérdida"],ok:2,exp:"Romper la correlación dominio↔clase por construcción, como hace BTC."}
+  ]
+},
+{
+  id:"t6", titulo:"Cómo redactar la memoria", etiqueta:"Tema 6",
+  resumen:`
+  <p>Ya dominas el contenido; escribir es trasladarlo. Orden recomendado (lo factual primero):</p>
+  <div class="scroll"><table>
+    <tr><th>Orden</th><th>Capítulo</th><th>Por qué</th></tr>
+    <tr><td>1.º</td><td>7 · Resultados</td><td>100% anclado en datos; fija la historia</td></tr>
+    <tr><td>2.º</td><td>6 · Diseño exp. + 5 · Metodología</td><td>Describen lo que hiciste</td></tr>
+    <tr><td>3.º</td><td>4 · Materiales</td><td>Tablas y EDA listos</td></tr>
+    <tr><td>4.º</td><td>8 · Discusión</td><td>Interpretación tras los resultados</td></tr>
+    <tr><td>5.º</td><td>3 · Estado del arte</td><td>Requiere lectura (en paralelo)</td></tr>
+    <tr><td>6.º</td><td>1,2,9,10</td><td>Intro, objetivos, conclusiones, futuras</td></tr>
+  </table></div>
+  <div class="warn"><b>Decidido:</b> el baseline 2D se excluye (código no conservado, no reproducible, y
+  comparar AUC reproduciría el sesgo que el trabajo desmonta).</div>
+  <p>40–50 páginas. Detalle en <code>esquema_memoria_anotado.md</code>; figura principal
+  <code>auc_summary.png</code>, figura estrella <code>embeddings_tsne.png</code>.</p>`,
+  profundo:`
+  <div class="ml"><div class="ml-h">Reporte estadístico honesto</div>
+    <p><b>Intuición:</b> reporta intervalos de confianza, no solo estimaciones puntuales; declara n,
+    semillas y número de remuestreos; no presentes una métrica sin su incertidumbre.</p>
+    <p class="why2"><b>Por qué importa:</b> es lo que separa un TFG defendible de uno vendehúmos. Tu IC95%
+    en BTC es justamente lo que te permite decir "azar" con rigor.</p></div>
+  <div class="ml"><div class="ml-h">Auditoría pre-registrada y reproducible</div>
+    <p><b>Intuición:</b> las hipótesis de las pruebas (p. ej. "Grad-CAM debería caer en bordes") se
+    enuncian <i>antes</i> de mirar el resultado; todo corre con semilla fija.</p>
+    <p class="why2"><b>Por qué importa:</b> evita la crítica de "elegiste la métrica que te convenía a
+    posteriori". Menciónalo explícitamente en Metodología.</p></div>`,
+  recursos:`<h4>Documentos guía</h4><ul><li><code>esquema_memoria_anotado.md</code> · <code>reconstruccion_evolucion_tfg.md</code> · <code>referencias.md</code></li></ul>`,
+  quiz:[
+    {q:"¿Por qué capítulo conviene empezar a redactar?",opts:["Introducción","Estado del arte","Resultados (Cap. 7)","Conclusiones"],ok:2,exp:"Lo factual y sin dependencia externa primero."},
+    {q:"¿Qué se decidió sobre el baseline 2D?",opts:["Ampliarlo","Excluirlo de la memoria","Hacerlo el modelo principal","Compararlo en detalle"],ok:1,exp:"No reproducible y comparar AUC reproduciría el sesgo."},
+    {q:"¿Qué práctica de reporte refuerza la honestidad de tus conclusiones?",hard:true,opts:["Dar solo la AUC puntual","Reportar intervalos de confianza, n y semillas","Omitir los casos malos","Redondear al alza"],ok:1,exp:"Los IC y la trazabilidad son lo que sostiene la afirmación de 'azar'."}
+  ]
+}
+];
+
+const PASS = 0.7;
+const $ = (s,root=document)=>root.querySelector(s);
+function el(t,c,h){const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;}
+function passed(id){return localStorage.getItem("pass_"+id)==="1";}
+function bestScore(id){return localStorage.getItem("score_"+id)||"";}
+let current = localStorage.getItem("current") || TEMAS[0].id;
+let layer = "resumen";
+
+function renderNav(){
+  const nav=$("#nav"); nav.innerHTML="";
+  TEMAS.forEach((t,i)=>{
+    const b=el("button","navbtn"+(t.id===current?" active":"")+(passed(t.id)?" passed":""));
+    const ic = passed(t.id)? '<span class="ic done">✓</span>' : `<span class="ic">${i}</span>`;
+    b.innerHTML = ic + `<span>${t.etiqueta} · ${t.titulo}</span>`;
+    b.onclick=()=>{current=t.id; localStorage.setItem("current",current); render(); window.scrollTo({top:0,behavior:"smooth"});};
+    nav.appendChild(b);
+  });
+  const done=TEMAS.filter(t=>passed(t.id)).length;
+  $("#bar").style.width=Math.round(done/TEMAS.length*100)+"%";
+  $("#progtxt").textContent=`${done} / ${TEMAS.length} temas aprobados`;
+}
+
+function render(){
+  renderNav();
+  const t=TEMAS.find(x=>x.id===current);
+  const idx=TEMAS.indexOf(t);
+  const m=$("#main"); m.innerHTML="";
+  m.appendChild(el("div","crumb",`${t.etiqueta}${passed(t.id)?' · ✅ aprobado ('+bestScore(t.id)+')':''}`));
+  m.appendChild(el("h2","tt",t.titulo));
+
+  // tabs resumen / profundo
+  const tabs=el("div","tabs");
+  const tabR=el("button","tab"+(layer==="resumen"?" active":""),"📄 Resumen");
+  const tabP=el("button","tab"+(layer==="profundo"?" active":""),"🔬 En profundidad");
+  tabR.onclick=()=>{layer="resumen";render();};
+  tabP.onclick=()=>{layer="profundo";render();};
+  tabs.appendChild(tabR); tabs.appendChild(tabP); m.appendChild(tabs);
+
+  const cont=el("div","apuntes layer active");
+  cont.innerHTML = layer==="resumen" ? t.resumen : t.profundo;
+  m.appendChild(cont);
+
+  if(t.recursos) m.appendChild(el("div","recursos",t.recursos));
+
+  // QUIZ (mezcla básicas + tribunal)
+  const quiz=el("div","quiz");
+  quiz.appendChild(el("h3",null,"🧪 Test del tema"));
+  const nHard=t.quiz.filter(q=>q.hard).length;
+  quiz.appendChild(el("p","lead",`${t.quiz.length} preguntas (${nHard} de <b>nivel tribunal</b> ⚖️). Necesitas ≥ ${PASS*100}% para aprobar.`));
+  t.quiz.forEach((q,qi)=>{
+    const qd=el("div","q"); qd.dataset.ok=q.ok;
+    const badge = q.hard? ' <span class="badge hard">⚖️ tribunal</span>':'';
+    qd.appendChild(el("div","qt",`${qi+1}. ${q.q}${badge}`));
+    q.opts.forEach((o,oi)=>{
+      const lab=el("label","opt");
+      lab.innerHTML=`<input type="radio" name="${t.id}_${qi}" value="${oi}"> <span>${o}</span>`;
+      qd.appendChild(lab);
+    });
+    qd.appendChild(el("div","exp",`<b>Explicación:</b> ${q.exp}`));
+    quiz.appendChild(qd);
+  });
+  const btns=el("div","qbtns");
+  const corr=el("button","primary","Corregir");
+  const result=el("span","score","");
+  const retry=el("button","ghost","Reintentar");
+  corr.onclick=()=>gradeQuiz(t,quiz,result);
+  retry.onclick=()=>render();
+  btns.appendChild(corr); btns.appendChild(retry); btns.appendChild(result);
+  quiz.appendChild(btns);
+  m.appendChild(quiz);
+
+  const foot=el("div","navfoot");
+  const prev=el("button",null,"← Anterior"); const next=el("button",null,"Siguiente →");
+  prev.disabled=idx===0; next.disabled=idx===TEMAS.length-1;
+  prev.onclick=()=>{current=TEMAS[idx-1].id;localStorage.setItem("current",current);render();window.scrollTo({top:0});};
+  next.onclick=()=>{current=TEMAS[idx+1].id;localStorage.setItem("current",current);render();window.scrollTo({top:0});};
+  foot.appendChild(prev); foot.appendChild(next); m.appendChild(foot);
+}
+
+function gradeQuiz(t,quiz,result){
+  const qs=quiz.querySelectorAll(".q");
+  let correct=0;
+  qs.forEach(qd=>{
+    const ok=+qd.dataset.ok;
+    const sel=qd.querySelector("input:checked");
+    qd.querySelectorAll(".opt").forEach((opt,oi)=>{
+      opt.classList.remove("correct","wrong");
+      if(oi===ok) opt.classList.add("correct");
+      if(sel && +sel.value===oi && oi!==ok) opt.classList.add("wrong");
+    });
+    qd.querySelector(".exp").classList.add("show");
+    if(sel && +sel.value===ok) correct++;
+  });
+  const total=t.quiz.length, pct=Math.round(correct/total*100), ok=correct/total>=PASS;
+  result.className="score "+(ok?"ok":"no");
+  result.innerHTML=`${correct}/${total} (${pct}%) — ${ok?"✅ aprobado":"sigue repasando"}`;
+  if(ok){localStorage.setItem("pass_"+t.id,"1");localStorage.setItem("score_"+t.id,pct+"%");}
+  renderNav();
+}
+function resetAll(){
+  if(!confirm("¿Reiniciar todo el progreso?")) return;
+  TEMAS.forEach(t=>{localStorage.removeItem("pass_"+t.id);localStorage.removeItem("score_"+t.id);});
+  render();
+}
+render();
+</script>
+</body>
+</html>

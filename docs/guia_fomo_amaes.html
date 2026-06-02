@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Guía paso a paso — CNN 3D de triaje cerebral con FOMO260K + AMAES</title>
+<style>
+  @page { size: A4; margin: 2cm; }
+  body { font-family: "Liberation Sans", Arial, sans-serif; font-size: 11pt; line-height: 1.5; color:#111; }
+  h1 { font-size: 20pt; color:#0b3d66; margin-bottom: 2pt; }
+  h2 { font-size: 14.5pt; color:#0b3d66; border-bottom: 1.5px solid #0b3d66; padding-bottom: 3px; margin-top: 22px; }
+  h3 { font-size: 12pt; color:#1b5e20; margin-top: 16px; margin-bottom: 4px; }
+  .sub { color:#555; font-size: 10pt; margin-top: 0; }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 10px 0; }
+  li { margin: 3px 0; }
+  code { font-family: "Liberation Mono", Consolas, monospace; font-size: 9.5pt; background:#eef2f6; padding: 1px 4px; border-radius: 3px; }
+  pre { font-family: "Liberation Mono", Consolas, monospace; font-size: 9pt; background:#0f1722; color:#e6edf3;
+        padding: 10px 12px; border-radius: 6px; white-space: pre-wrap; line-height:1.4; }
+  pre .c { color:#7fd1b9; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 9.5pt; }
+  th, td { border: 1px solid #b9c3cf; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background:#dce6f1; }
+  .key { background:#eef6ff; border-left: 3px solid #0b3d66; padding: 8px 12px; margin: 10px 0; }
+  .warn { background:#fff7e6; border-left: 3px solid #d29922; padding: 8px 12px; margin: 10px 0; }
+  .small { font-size: 9pt; color:#555; }
+  a { color:#0b5cad; }
+</style>
+</head>
+<body>
+
+<h1>Guía paso a paso — Repositorio para una CNN 3D de triaje cerebral (tumor / sano)</h1>
+<p class="sub">Enfoque: encoder 3D <b>preentrenado</b> (FOMO260K + pesos de AMAES) + <b>fine-tuning</b> con datos etiquetados. Documento de trabajo.</p>
+
+<h2>0. Idea del enfoque (en 4 líneas)</h2>
+<ol>
+  <li><b>Preentrenar</b> = aprender "cómo es un cerebro en RM" a partir de muchísimos volúmenes sin etiqueta. No lo haces tú: <b>descargas un encoder 3D ya preentrenado</b> (AMAES, entrenado sobre FOMO260K: 260.927 scans de 910 fuentes).</li>
+  <li><b>Fine-tuning</b> = enseñarle TU tarea (tumor / sano) con un conjunto <b>etiquetado</b>.</li>
+  <li>Para que aprenda <b>la lesión</b> y no "de qué dataset viene": que en los datos de fine-tuning <b>cada clase venga de varias fuentes mezcladas</b> (o ambas clases del mismo origen). Así "la fuente" deja de predecir la etiqueta y lo único consistente que separa las clases es el tumor.</li>
+  <li>Resultado: una CNN 3D que distingue sano/tumor de verdad, y con N pequeño etiquetado basta porque el encoder ya sabe de cerebros.</li>
+</ol>
+
+<h2>1. Crear el repositorio desde cero</h2>
+<p>Cada comando lleva, debajo, qué hace.</p>
+<pre><span class="c"># 1) Crear la carpeta del proyecto y entrar</span>
+mkdir brain-mri-triage-3d && cd brain-mri-triage-3d
+
+<span class="c"># 2) Inicializar git (control de versiones)</span>
+git init
+
+<span class="c"># 3) Entorno de Python aislado (no mezclar librerías). Puedes reutilizar tu env 'igsan'.</span>
+python -m venv .venv && source .venv/bin/activate
+
+<span class="c"># 4) Crear el esqueleto de carpetas de golpe</span>
+mkdir -p configs data/raw data/processed models/pretrained \
+  src/data src/models src/training src/evaluation \
+  scripts notebooks docs
+
+<span class="c"># 5) Convertir src y subcarpetas en paquetes de Python</span>
+touch src/__init__.py src/data/__init__.py src/models/__init__.py \
+  src/training/__init__.py src/evaluation/__init__.py
+
+<span class="c"># 6) .gitignore (que NO suba datos, pesos ni resultados pesados)</span>
+printf "data/\nmodels/pretrained/\noutputs/\n.venv/\n__pycache__/\n*.pyc\n.ipynb_checkpoints/\n" > .gitignore
+
+<span class="c"># 7) Librerías necesarias (pila 3D)</span>
+printf "torch\nmonai\nnibabel\nnumpy\npandas\nscikit-learn\nmatplotlib\nhuggingface_hub\ntqdm\npyyaml\n" > requirements.txt
+
+<span class="c"># 8) Instalarlas</span>
+pip install -r requirements.txt
+
+<span class="c"># 9) README mínimo</span>
+printf "# brain-mri-triage-3d\nCNN 3D de triaje (tumor/sano) con encoder preentrenado (FOMO260K/AMAES) + fine-tuning.\n" > README.md
+
+<span class="c"># 10) Primer commit (foto inicial del repo)</span>
+git add . && git commit -m "Estructura inicial del repositorio"</pre>
+
+<h2>2. Estructura de carpetas (definitiva)</h2>
+<p>Una frase por carpeta:</p>
+<pre>brain-mri-triage-3d/
+├── README.md              <span class="c"># Qué es el proyecto en 2 líneas</span>
+├── requirements.txt       <span class="c"># Librerías necesarias</span>
+├── .gitignore             <span class="c"># Qué NO se sube a git (datos, pesos, resultados)</span>
+├── configs/
+│   └── finetune.yaml      <span class="c"># Todos los ajustes del fine-tuning en un sitio</span>
+├── data/                  <span class="c"># (no se sube a git)</span>
+│   ├── raw/               <span class="c"># Volúmenes descargados tal cual (NIfTI)</span>
+│   └── processed/         <span class="c"># Volúmenes ya normalizados + metadata.csv</span>
+├── models/
+│   └── pretrained/        <span class="c"># Pesos del encoder AMAES descargado (no se sube)</span>
+├── src/
+│   ├── data/
+│   │   ├── prepare.py     <span class="c"># raw -> processed + metadata.csv (ruta, label, fuente)</span>
+│   │   ├── dataset.py     <span class="c"># Carga los volúmenes 3D y los da al modelo</span>
+│   │   └── splits.py      <span class="c"># Reparte train/val/test (agrupado por sujeto, congelado)</span>
+│   ├── models/
+│   │   ├── encoder.py     <span class="c"># Carga el encoder 3D preentrenado (AMAES)</span>
+│   │   └── classifier3d.py<span class="c"># Encoder + cabeza de clasificación (1 logit: tumor/sano)</span>
+│   ├── training/
+│   │   └── finetune.py    <span class="c"># Fine-tuning del modelo y guardado del mejor checkpoint</span>
+│   └── evaluation/
+│       └── evaluate.py    <span class="c"># Métricas: AUC, sensibilidad, especificidad, IC95%</span>
+├── scripts/
+│   ├── download_weights.sh<span class="c"># Descarga los pesos de AMAES</span>
+│   └── run_all.sh         <span class="c"># Ejecuta el pipeline entero en orden</span>
+├── notebooks/
+│   └── eda.ipynb          <span class="c"># Exploración rápida de los datos</span>
+└── docs/                  <span class="c"># Documentación y borradores</span></pre>
+
+<h2>3. El proceso, explicado claro (preentrenar vs fine-tuning)</h2>
+<table>
+  <tr><th>Fase</th><th>Qué hace</th><th>De dónde sale</th></tr>
+  <tr><td><b>Preentrenamiento</b></td><td>Aprende rasgos generales de cerebro en RM con MUCHÍSIMOS volúmenes sin etiqueta</td><td>No lo haces tú: <b>descargas los pesos de AMAES</b> (entrenados sobre FOMO260K)</td></tr>
+  <tr><td><b>Fine-tuning</b></td><td>Aprende TU tarea concreta: tumor / sano</td><td>Lo haces tú, con un set <b>etiquetado</b></td></tr>
+  <tr><td><b>Evaluación</b></td><td>Mide si distingue de verdad</td><td>Conjunto de test separado</td></tr>
+</table>
+<div class="key"><b>La condición clave:</b> el preentrenamiento NO crea etiquetas; sigues necesitando un conjunto etiquetado para el fine-tuning. Lo que consigue es que ese conjunto, aunque sea pequeño, <b>baste</b>, porque el encoder ya sabe de cerebros.</div>
+
+<h2>4. Paso a paso: pesos de AMAES + datos FOMO260K</h2>
+
+<h3>4.1 Descargar el encoder 3D preentrenado (AMAES)</h3>
+<pre><span class="c"># Clonar el repositorio de AMAES (código + checkpoints + documentación)</span>
+git clone https://github.com/asbjrnmunk/amaes.git external/amaes
+
+<span class="c"># Seguir su README para descargar el checkpoint del encoder ResEnc preentrenado</span>
+<span class="c"># y colocarlo en models/pretrained/</span></pre>
+<p class="small">Repos de referencia: <a href="https://github.com/asbjrnmunk/amaes">github.com/asbjrnmunk/amaes</a> (pesos + código) y
+<a href="https://github.com/fomo25/baseline-codebase">github.com/fomo25/baseline-codebase</a> (pipeline de preentrenar + fine-tuning ya montado, del reto FOMO25).</p>
+<div class="warn"><b>Verificar:</b> formato exacto del checkpoint, framework (AMAES se apoya en estilo nnU-Net/nnssl) y cómo cargar solo el encoder. Hazlo siguiendo su README antes de programar nada.</div>
+
+<h3>4.2 Conseguir los datos etiquetados</h3>
+<p><b>Opción B (la preferente, si las etiquetas existen): FOMO260K.</b></p>
+<ul>
+  <li>Está en Hugging Face: <code>FOMO-MRI/FOMO260K</code>. Formato NIfTI (.nii.gz). Licencia CC-BY-NC-SA-4.0 (uso académico OK).</li>
+  <li>Trae metadatos: <code>participants.tsv</code> (diagnóstico: control / tumor…), <code>mri_info.tsv</code>, <code>mapping.tsv</code>.</li>
+  <li>Como mezcla 910 fuentes y ambas clases salen de fuentes solapadas, "la fuente" no predice la etiqueta → entrenar ahí fuerza a aprender la lesión.</li>
+</ul>
+<pre><span class="c"># Login en Hugging Face (una sola vez)</span>
+huggingface-cli login
+
+<span class="c"># NO descargues 1,87 TB enteros. Baja solo lo que necesites (subconjunto).</span>
+<span class="c"># Ejemplo: descargar los metadatos primero para ver las etiquetas</span>
+huggingface-cli download FOMO-MRI/FOMO260K --repo-type dataset \
+  --include "*participants.tsv" --local-dir data/raw/fomo_meta</pre>
+<div class="warn"><b>Verificar antes de seguir:</b> abre los <code>participants.tsv</code> y comprueba que de verdad distinguen <b>tumor vs control</b> de forma usable. Si es así, descargas solo los sujetos de esas dos clases.</div>
+
+<p><b>Opción A (alternativa segura): un set etiquetado pequeño</b> de fuente única (o con varias fuentes por clase). Sirve para el fine-tuning aunque sea de decenas de sujetos, porque el encoder ya está preentrenado.</p>
+
+<h3>4.3 Preparar los datos (<code>src/data/prepare.py</code>)</h3>
+<ul>
+  <li>Leer <code>participants.tsv</code> y construir <code>data/processed/metadata.csv</code> con columnas: <code>ruta</code>, <code>label</code> (1=tumor, 0=sano), <code>fuente</code>, <code>subject_id</code>.</li>
+  <li>Homogeneizar cada volumen: reorientar a RAS, remuestrear a 1&nbsp;mm³, recortar/rellenar a una forma fija, normalizar (z-score sobre tejido). <span class="small">(El encoder de AMAES espera un preprocesado concreto: ajústate al que indique su repo.)</span></li>
+</ul>
+
+<h3>4.4 Repartir en train/val/test (<code>src/data/splits.py</code>)</h3>
+<ul>
+  <li>Estratificado por clase, <b>agrupado por <code>subject_id</code></b> (que ningún sujeto caiga en dos particiones), semilla fija (42), y <b>congelar</b> el split en un JSON.</li>
+</ul>
+
+<h3>4.5 Montar el modelo (<code>src/models/</code>)</h3>
+<ul>
+  <li><code>encoder.py</code>: carga el encoder 3D preentrenado de AMAES desde <code>models/pretrained/</code>.</li>
+  <li><code>classifier3d.py</code>: encoder + una <b>cabeza de clasificación</b> (pooling global → capa lineal → 1 logit). Salida = <code>sigmoid(logit)</code> = probabilidad de tumor.</li>
+</ul>
+
+<h3>4.6 Fine-tuning (<code>src/training/finetune.py</code>)</h3>
+<ul>
+  <li>Estrategia recomendada: empezar con el <b>encoder congelado</b> (entrenar solo la cabeza) y luego, si va bien, descongelar con learning rate bajo.</li>
+  <li>Pérdida <code>BCEWithLogitsLoss</code>; optimizador AdamW; guardar el mejor checkpoint por <b>balanced accuracy</b> con sensibilidad mínima; semilla fija; split congelado.</li>
+</ul>
+
+<h3>4.7 Evaluar (<code>src/evaluation/evaluate.py</code>)</h3>
+<ul>
+  <li>AUC, PR-AUC, sensibilidad, especificidad, F1, matriz de confusión, e <b>intervalos de confianza por bootstrap</b>.</li>
+  <li>El umbral de decisión se elige en validación y se aplica a test.</li>
+</ul>
+
+<h2>5. Orden de ejecución (el flujo)</h2>
+<pre>bash scripts/download_weights.sh           <span class="c"># 1) pesos de AMAES -> models/pretrained/</span>
+python -m src.data.prepare                 <span class="c"># 2) raw -> processed + metadata.csv</span>
+python -m src.data.splits                  <span class="c"># 3) train/val/test (congelado)</span>
+python -m src.training.finetune --config configs/finetune.yaml   <span class="c"># 4) fine-tuning</span>
+python -m src.evaluation.evaluate --checkpoint outputs/best.pt   <span class="c"># 5) métricas</span></pre>
+
+<h2>6. Notas prácticas (para no estrellarte)</h2>
+<ul>
+  <li><b>No preentrenes tú</b>: descarga los pesos. Preentrenar 260k volúmenes es inviable en tu equipo; el fine-tuning sí es asumible (GPU AMD ROCm).</li>
+  <li><b>No bajes 1,87 TB</b>: descarga metadatos primero y luego solo el subconjunto de sujetos tumor/control que vayas a usar.</li>
+  <li><b>Etiquetas</b>: el preentrenamiento no las da; necesitas un set etiquetado para el fine-tuning. Verifica las de FOMO260K antes de comprometerte (Opción B); si no, usa la Opción A.</li>
+  <li><b>Licencia</b>: FOMO260K es CC-BY-NC-SA-4.0 (no comercial) → válido para un TFG; cita la fuente.</li>
+  <li><b>Curva de aprendizaje</b>: foundation models 3D + fine-tuning es más avanzado; apóyate en el README de AMAES y en la baseline de FOMO25.</li>
+</ul>
+
+<h2>7. Enlaces</h2>
+<ul>
+  <li>AMAES (pesos + código): <a href="https://github.com/asbjrnmunk/amaes">github.com/asbjrnmunk/amaes</a></li>
+  <li>FOMO25 baseline (pipeline preentrenar+fine-tuning): <a href="https://github.com/fomo25/baseline-codebase">github.com/fomo25/baseline-codebase</a></li>
+  <li>Reto FOMO25: <a href="https://fomo25.github.io/">fomo25.github.io</a></li>
+  <li>Dataset FOMO260K: <code>FOMO-MRI/FOMO260K</code> (Hugging Face)</li>
+  <li>Paper del dataset: <a href="https://arxiv.org/abs/2506.14432">arxiv.org/abs/2506.14432</a></li>
+</ul>
+
+<p class="small">Documento generado como guía de trabajo. Los pasos de descarga de pesos y de etiquetas de FOMO260K deben verificarse contra los repos/HF oficiales antes de programar.</p>
+
+</body>
+</html>

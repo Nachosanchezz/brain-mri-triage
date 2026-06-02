@@ -36,9 +36,12 @@ def plot_intensity_by_dataset():
         print(f"  AVISO: no existe {csv_path}; salto E2")
         return
     rows = list(csv.DictReader(open(csv_path, encoding="utf-8")))
-    feats = ["nz_frac_t1", "mean_t1", "p50_t1", "p99_t1"]
+    # Nota: por el z-score sobre tejido, mean_t1~0 y std_t1~1 por construccion
+    # (no informativos). Se usan fraccion no-cero y PERCENTILES (forma de la
+    # distribucion), que SI varian entre datasets.
+    feats = ["nz_frac_t1", "p25_t1", "p50_t1", "p99_t1"]
     titles = {"nz_frac_t1": "Fracción vóxeles no-cero (T1)",
-              "mean_t1": "Intensidad media (T1)",
+              "p25_t1": "Percentil 25 intensidad (T1)",
               "p50_t1": "Mediana intensidad (T1)",
               "p99_t1": "Percentil 99 intensidad (T1)"}
     fig, axes = plt.subplots(1, 4, figsize=(16, 5))
