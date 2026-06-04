@@ -1,0 +1,61 @@
+\chapter{Desarrollo}
+% Epígrafe dentro del capítulo
+\epigraph{UNIX es simple. Sólo necesita un genio para entender su simplicidad}{Dennis Ritchie}
+
+\section{Ejemplos de uso de \LaTeX}
+
+\subsection{Referencias bibliográficas}
+\input{secciones/desarrollo/bibliografia}
+
+\subsection{Cómo hacer subniveles}
+En esta sección mostramos como hacer subsecciones.
+
+Los documentos de Latex se organizan en distintos bloques que se dividen en:
+
+\begin{enumerate}
+  \item part
+  \item chapter
+  \item section
+  \item subsection
+  \item subsubsection
+  \item paragraph
+  \item supparagraph
+\end{enumerate}
+
+Añadiendo un asterisco en el nombre, lo eliminarás de la numeración, y por tanto, de la tabla de contenidos.
+
+\subsubsection{Esta es una subsubsection}
+\paragraph{Este es un paragraph}
+\subparagraph{Y yo soy un subparagraph}
+
+\resaltar{
+    Además se incluyen comandos adicionales para activar efectos como éste ...
+
+    Con el comando ``resaltar'' se mostrará el texto en una caja como la que ves.
+}
+
+\resaltar[Y opcionalmente puedes poner un título]{
+    Y también puedes hacer estas cajas con títulos
+}
+
+
+% Quiero empezar en una página nueva, añado newpage
+\newpage
+\subsection{Ejemplo de tabla}
+\input{secciones/desarrollo/tablas}
+
+% Quiero empezar en una página nueva, añado newpage
+\newpage
+\subsection{Ejemplo figuras/imágenes}
+\input{secciones/desarrollo/figuras}
+
+\subsection{Ejemplos de fórmulas}
+\input{secciones/desarrollo/ecuaciones}
+
+\section{Ejemplos de inserción de contenido externo}
+
+\subsection{Código fuente}
+\input{secciones/desarrollo/codigofuente}
+
+\subsection{Uso de Graphviz}
+\input{secciones/desarrollo/graphviz}

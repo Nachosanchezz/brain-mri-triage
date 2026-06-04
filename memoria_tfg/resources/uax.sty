@@ -1,0 +1,221 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plantilla STY para su uso en TFG de la UAX
+% (c) 2023, Fernando Rodríguez Sela
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ProvidesPackage{resources/uax}
+\usepackage[a4paper, total={150mm, 250mm}]{geometry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Comandos de la plantilla
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\borrador}{
+    \usepackage{draftwatermark}
+    \SetWatermarkText{BORRADOR}
+    \SetWatermarkScale{4}
+}
+
+\usepackage{lineno}
+\newif\ifinreview
+\inreviewfalse
+\newcommand{\paraRevision}{
+    \inreviewtrue
+    \linenumbers
+}
+
+\newcommand{\dedicatoria}[1]{
+    \def \dedicatoria {#1}
+}
+
+\newcommand{\grado}[1]{
+    \def \grado {#1}
+}
+\newcommand{\np}[1]{
+    \def \np {#1}
+}
+\newcommand{\tutor}[1]{
+    \def \tutor {#1}
+}
+\newcommand{\tutorEmpresa}[1]{
+    \def \tutorEmpresa {#1}
+}
+\newcommand{\subject}[1]{
+    \def \subject {#1}
+}
+\newcommand{\palabrasClave}[1]{
+    \def \palabrasClave {#1}
+}
+\newcommand{\resumen}[1]{
+    \def \resumen {#1}
+}
+
+\usepackage{tcolorbox}
+\newcommand{\resaltar}[2][]{
+    \vspace{0.4cm}
+    \begin{tcolorbox}[{colback=azulUAX!5!white,colframe=azulUAX!75!black,title=#1}]
+        #2
+    \end{tcolorbox}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Librerías necesarias
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{adjustbox}  % Usada en la portada para cuadro de fondo
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[T1]{fontenc}
+
+\usepackage[tablegrid]{vhistory}   % Soporte a versionado
+
+\usepackage{amsmath}
+
+\usepackage[backend=biber,style=ieee,sorting=none]{biblatex}
+\usepackage{csquotes}
+
+\usepackage{lscape}     % Entorno landscape
+
+% TODO: Mirar si es necesario identar la primera línea (sangría francesa)
+%    \usepackage{indentfirst}
+    \usepackage{xcolor}
+
+\usepackage{titling}    % Acceso a thetitle, theauthor, ...
+\usepackage{graphicx}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Metadatos para el PDF
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\metadatos}{
+    \hypersetup{
+        pdftitle={\thetitle},
+        pdfsubject={\subject},
+        pdfauthor={\theauthor},
+        pdfkeywords={\palabrasClave}
+    }
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Soporte para Graphviz
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[pdf]{graphviz}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Cabeceras y piés
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+%\renewcommand{\chapter}[1]{\ifthenelse{\equal{#1}{*}}%
+%  {\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+%  {\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+%}
+
+\usepackage{lastpage}
+\usepackage{fancyhdr}
+\setlength\headheight{42pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\includegraphics[width=4cm]{resources/logoUAX.png}}
+\rhead{\thechapter\ \currentchapter}
+\lfoot{
+  \includegraphics[height=10pt]{resources/uax_gt.png}
+  GRADO EN INGENIERÍA DE \grado
+}
+\rfoot{
+  \thepage/\pageref{LastPage}
+  \includegraphics[height=10pt]{resources/uax_lt.png}
+}
+\renewcommand{\headrulewidth}{2pt}
+\renewcommand{\footrulewidth}{1pt}
+
+\fancypagestyle{plain}{%    Páginas de título de capítulo e índices
+  \fancyhf{}%
+  \lhead{\includegraphics[width=6cm]{resources/logoUAX.png}}
+  \lfoot{
+    \includegraphics[height=10pt]{resources/uax_gt.png}
+    GRADO EN INGENIERÍA DE \grado
+  }
+  \rfoot{
+    \thepage/\pageref{LastPage}
+    \includegraphics[height=10pt]{resources/uax_lt.png}
+  }
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{1pt}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Títulos capítulos y secciones
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% TODO: ¿Realmente queremos dar color y estilo a capítulos y secciones?
+\definecolor{azulUAX}{HTML}{0060AB}
+\usepackage[Sonny]{fncychap} % Modifica el estilo de los capitulos.
+    \ChNameVar{\color{azulUAX}\fontsize{14}{16}\usefont{OT1}{phv}{m}{n}\selectfont}
+    \ChNumVar{\fontsize{60}{0}\selectfont\color{azulUAX}}
+    \ChTitleVar{\Huge\bfseries\centering\color{azulUAX}}
+
+\usepackage{titlesec}   % Configuración títulos secciones
+    \titleformat{\section}{\Large\bfseries\color{azulUAX}}{\thesection\ \includegraphics[height=10pt]{resources/uax_gt.png}}{5pt}{}
+    \titleformat{\subsection}{\bfseries\color{azulUAX}}{\thesubsection\ \includegraphics[height=8pt]{resources/uax_gt.png}}{5pt}{}
+    \titleformat{\subsubsection}{\bfseries\color{azulUAX}}{}{5pt}{}
+    \titleformat{\paragraph}{\bfseries\color{azulUAX}}{}{5pt}{}
+    \titleformat{\subparagraph}{\bfseries\color{azulUAX}}{}{5pt}{}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Epígrafes y citas
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{epigraph}
+\setlength{\epigraphwidth}{0.5\textwidth}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Configuración minted: Código fuente
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{minted}
+\definecolor{LightGray}{gray}{0.9}
+
+\setminted{frame=lines,
+        framesep=2mm,
+        baselinestretch=1.2,
+        bgcolor=LightGray,
+        fontsize=\footnotesize,
+        linenos=true,
+        breaklines}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Configuración hyperref: Referencias URLs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=blue,      
+    urlcolor=azulUAX,
+    pdftitle={TFG},
+    pdfpagemode=FullScreen,
+    }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Traducciones
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% paquete babel con opción: es-tabla
+%\addto\captionsspanish{\renewcommand\listfigurename{Índice de figuras}}
+%\addto\captionsspanish{\renewcommand\listtablename{Índice de tablas}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Control del fondo (para borde de portada)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{background}
+\backgroundsetup{contents = }   % Eliminar texto "DRAFT" rojo por defecto
+%\usetikzlibrary{calc}
+%\backgroundsetup{angle = 0, scale = 1, vshift = -2ex,
+%  contents = {\tikz[overlay, remember picture]
+%    \draw [rounded corners = 20pt, line width = 1pt,
+%           color = blue, fill = yellow!20, double = blue!10]
+%           ($(current page.north west)+(1cm,-1cm)$)
+%           rectangle ($(current page.south east)+(-1,1)$);}}

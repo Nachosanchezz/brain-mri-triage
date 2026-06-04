@@ -1,0 +1,47 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AQUÍ NO TIENES QUE TOCAR NADA, LA PÁGINA 1 SE GENERA AUTOMÁTICAMENTE
+% (c) 2023, Fernando Rodríguez Sela
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{titlepage}
+    % En esta página usamos menos márgenes
+    \newgeometry{total={195mm, 260mm}}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{resources/logoUAX.png}
+    \end{figure}
+    
+    \begin{center}
+        \vspace{0.1cm}
+        \bfseries{\huge UNIVERSIDAD ALFONSO X EL SABIO \par}      
+        \vspace{0.1cm}
+        \bfseries{\LARGE ESCUELA POLITÉCNICA SUPERIOR \par}
+        \vspace{0.1cm}
+        \bfseries{\Large GRADO EN INGENIERÍA DE \grado \par}
+        \vspace{1.5cm}
+        \bfseries{\Huge \thetitle \par}
+    \end{center}
+    
+    \vspace{1cm}
+    \large{\textbf{ALUMNO:} \theauthor \par}
+    \large{\textbf{N.P.:} \np \par}
+    \large{\textbf{TUTOR EMPRESARIAL:} \tutorEmpresa \par}
+    \large{\textbf{TUTOR:} \tutor \par}
+    \large{\textbf{FECHA DE PRESENTACIÓN:} \thedate \par}
+    \ifinreview
+        \large{\color{red}\textbf{EN REVISIÓN. VERSIÓN:} \vhCurrentVersion\ (\vhCurrentDate) \par}
+    \fi
+    \large{\textbf{BREVE DESCRIPCIÓN:} \par}
+    
+    \resumen
+
+    \vfill
+    \begin{adjustbox}{width=\textwidth}
+        \begin{tabular}{ l r }
+            \textbf{\small{FIRMA DEL DIRECTOR DEL TRABAJO}} &
+            \textbf{\small{FIRMA DEL ALUMNO}}
+        \end{tabular}
+    \end{adjustbox}
+    \vspace{0.5cm}
+\end{titlepage}

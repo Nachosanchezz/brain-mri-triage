@@ -1,0 +1,21 @@
+Esta plantilla está diseñada para los trabajos fin de grado de la
+Universidad Alfonso X el Sabio, Madrid
+
+Instrucciones de uso:
+
+1. Abre el fichero main.tex y edita los campos correspondientes con la información de tu TFG
+2. Abre la carpeta secciones y en el fichero index.tex te encontrarás con las distintas secciones
+  de ejemplo. Cambia el contenido a tu gusto
+
+
+Los documentos de Latex se organizan en distintos bloques que se dividen en:
+
+ * part
+ * chapter
+ * section
+ * subsection
+ * subsubsection
+ * paragraph
+ * supparagraph
+
+Añadiendo un asterisco en el nombre, lo eliminarás de la numeración, y por tanto, de la tabla de contenidos.

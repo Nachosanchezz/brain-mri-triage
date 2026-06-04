@@ -1,0 +1,81 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plantilla Trabajo Fin de Grado - Universidad Alfonso X el Sabio
+% (c) 2023, Fernando Rodríguez Sela
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[a4paper,12pt]{report}
+\usepackage{resources/uax}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Guarda tu bibliografía en formato BibTex en bibliography.bib
+% Recomendamos usar Zotero u otro gestor de documentación
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\addbibresource{bibliography.bib}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CUANDO TERMINES TU TFG, BORRA O COMENTA LA SIGUIENTE LÍNEA
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\borrador
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DEJA LA SIGUIENTE LÍNEA CUANDO ENVÍES TU TFG A TU TUTOR
+% PARA SU REVISIÓN. Se mostrarán números de línea que facilitarán
+% el seguimiento así como las versiones
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paraRevision
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% RELLENA ESTA INFORMACIÓN CON LOS DATOS DE TU TFG
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\grado{INFORMÁTICA}
+\title{TÍTULO DEL TRABAJO}
+\subject{Trabajo fin de grado}
+\author{NOMBRE DEL ALUMNO}
+\np{99999}
+\tutor{NOMBRE TUTOR}
+\tutorEmpresa{NOBRE Y EMPRESA}
+\date{FECHA DE PRESENTACIÓN}
+\palabrasClave{UAX,TFG}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ESCRIBE UN BREVE RESUMEN (20 LÍNEAS) PARA LA PÁGINA 1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\resumen{BREVE DESCRIPCIÓN DEL TRABAJO, APROXIMADAMENTE 20 LÍNEAS}
+
+\metadatos  % Incluir metadatos en el PDF generado
+\begin{document}
+
+\include{no_tocar/portada}
+\include{no_tocar/Tfg_pag1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Y SI QUIERES PONER UNA DEDICATORIA
+% EN CASO CONTRARIO, BORRA ESTAS LÍNEAS O COMENTA (% al principio)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\dedicatoria{A mi familia que ha creído en mí}
+\include{no_tocar/dedicatoria}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% En el fichero versiones.tex vete guardando los distintos cambios
+% que realizas entre cada entrega a revisión.
+% Esta lista no se mostrará en tu entrega final, ayudará al seguimiento
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifinreview \include{versiones} \fi
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AQUÍ YA NO TIENES QUE HACER NADA MÁS \o/
+% CONTINÚA EN LA CARPETA "secciones" PARA EL RESTO DE TU TRABAJO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\let\oldchapter\chapter % Hack: Deshacemos captura de nombre de capítulo. Falla en estos últimos
+\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\include{secciones/index}
+
+\let\chapter\oldchapter % Hack: Deshacemos captura de nombre de capítulo. Falla en estos últimos
+
+\listoffigures
+\listoftables
+\printbibliography
+
+\end{document}

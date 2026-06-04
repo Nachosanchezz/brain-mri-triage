@@ -1,0 +1,49 @@
+
+Graphviz es una herramienta para hacer diagramas
+
+\url{https://graphviz.org/}
+
+Éstos los podemos integrar en nuestros documentos de manera sencilla:
+
+\digraph{DiagramaSencillo}{
+  rankdir=LR;
+  a -> b -> c;
+  c -> a;
+}
+
+Uno más elaborado obtenido de la documentación oficial (\ref{fig:graficoDot} \nameref{fig:graficoDot}).
+
+Puedes probar tus diagramas en \url{https://dreampuf.github.io/GraphvizOnline}
+
+\begin{figure}
+    \centering
+    \digraph{MasElaborado}{
+      subgraph cluster_0 {
+        style=filled;
+        color=lightgrey;
+        node [style=filled,color=white];
+        a0 -> a1 -> a2 -> a3;
+        label = "process #1";
+      }
+    
+      subgraph cluster_1 {
+        node [style=filled];
+        b0 -> b1 -> b2 -> b3;
+        label = "process #2";
+        color=blue
+      }
+      start -> a0;
+      start -> b0;
+      a1 -> b3;
+      b2 -> a3;
+      a3 -> a0;
+      a3 -> end;
+      b3 -> end;
+    
+      start [shape=Mdiamond];
+      end [shape=Msquare];
+    }
+    \caption{Un gráfico escrito en Dot}
+    \label{fig:graficoDot}
+\end{figure}
+

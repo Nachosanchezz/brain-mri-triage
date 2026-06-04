@@ -1,0 +1,21 @@
+[0] Config.pm:328> INFO - This is Biber 2.21
+[0] Config.pm:331> INFO - Logfile is 'main.blg'
+[196] biber-MSWIN64:342> INFO - === 
+[265] Biber.pm:421> INFO - Reading 'main.bcf'
+[357] Biber.pm:1002> INFO - Found 4 citekeys in bib section 0
+[398] Biber.pm:4487> INFO - Processing section 0
+[416] Biber.pm:4678> INFO - Looking for bibtex file 'bibliography.bib' for section 0
+[485] bibtex.pm:1713> INFO - LaTeX decoding ...
+[505] bibtex.pm:1519> INFO - Found BibTeX data source 'bibliography.bib'
+[601] UCollate.pm:68> INFO - Overriding locale 'es-ES' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[601] UCollate.pm:68> INFO - Overriding locale 'es-ES' defaults 'variable = shifted' with 'variable = non-ignorable'
+[601] Biber.pm:4307> INFO - Sorting list 'none/global//global/global/global' of type 'entry' with template 'none' and locale 'es-ES'
+[607] bbl.pm:676> INFO - Writing 'main.bbl' with encoding 'UTF-8'
+[609] bbl.pm:779> INFO - Output to main.bbl
+[610] Biber.pm:132> WARN - legacy year field 'Año' in entry 'libro_autor_apellido' is not an integer - this will probably not sort properly.
+[610] Biber.pm:132> WARN - ISBN 'ISBN-13' in entry 'libro_autor_apellido' is invalid - run biber with '--validate_datamodel' for details.
+[610] Biber.pm:132> WARN - legacy year field 'Año' in entry 'articulo_autor_apellido' is not an integer - this will probably not sort properly.
+[610] Biber.pm:132> WARN - legacy year field 'Año' in entry 'conferencia_autor_apellido' is not an integer - this will probably not sort properly.
+[610] Biber.pm:132> WARN - legacy month field 'Mes' in entry 'conferencia_autor_apellido' is not an integer - this will probably not sort properly.
+[610] Biber.pm:132> WARN - legacy year field 'Año' in entry 'paper_autor_apellido' is not an integer - this will probably not sort properly.
+[610] Biber.pm:134> INFO - WARNINGS: 6

@@ -1,0 +1,21 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {chapter}{\numberline {1}Introducción}{4}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Objetivos}{4}{section.1.1}%
+\contentsline {chapter}{\numberline {2}Estado del arte}{5}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Tecnología 1}{5}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Ventajas e inconvenientes}{5}{subsection.2.1.1}%
+\contentsline {section}{\numberline {2.2}Página horizontal}{6}{section.2.2}%
+\contentsline {chapter}{\numberline {3}Desarrollo}{8}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Ejemplos de uso de \LaTeX }{8}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Referencias bibliográficas}{8}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Cómo hacer subniveles}{8}{subsection.3.1.2}%
+\contentsline {subsubsection}{Esta es una subsubsection}{9}{subsubsection*.3}%
+\contentsline {paragraph}{Este es un paragraph}{9}{paragraph*.4}%
+\contentsline {subparagraph}{Y yo soy un subparagraph}{9}{subparagraph*.5}%
+\contentsline {subsection}{\numberline {3.1.3}Ejemplo de tabla}{10}{subsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.1.4}Ejemplo figuras/imágenes}{11}{subsection.3.1.4}%
+\contentsline {subsection}{\numberline {3.1.5}Ejemplos de fórmulas}{11}{subsection.3.1.5}%
+\contentsline {section}{\numberline {3.2}Ejemplos de inserción de contenido externo}{11}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Código fuente}{11}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Uso de Graphviz}{12}{subsection.3.2.2}%
+\contentsline {chapter}{\numberline {4}Conclusiones}{13}{chapter.4}%

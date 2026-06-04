@@ -1,0 +1,39 @@
+Mira las tablas \ref{tab:miTablaSinBordes}, \ref{tab:miTablaBordesVerticales} y \ref{tab:miTablaBordesHorizontales}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{cccc}   % l, c, r -> Alineación de cada columna
+        1 & 2 & 3 & 4 \\
+        a & b & c & d\\
+        g & h & i & j\\
+    \end{tabular}
+    \caption{Tabla sin bordes}
+    \label{tab:miTablaSinBordes}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|c|}  % Aquí indicamos lso bordes verticales
+        1 & 2 & 3 & 4 \\
+        a & b & c & d\\
+        g & h & i & j\\
+    \end{tabular}
+    \caption{Tabla con bordes verticales}
+    \label{tab:miTablaBordesVerticales}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c||c|c|c|}  % Aquí indicamos lso bordes verticales, también duplicados si queremos
+        \hline
+        1 & 2 & 3 & 4 \\
+        \hline      % Ponemos doble borde
+        \hline
+        a & b & c & d\\
+        \hline
+        g & h & i & j\\
+        \hline
+    \end{tabular}
+    \caption{Tabla con bordes horizontales}
+    \label{tab:miTablaBordesHorizontales}
+\end{table}

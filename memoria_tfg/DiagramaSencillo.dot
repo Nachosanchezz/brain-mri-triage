@@ -1,0 +1,5 @@
+digraph DiagramaSencillo {
+rankdir=LR;
+a ->b ->c;
+c ->a;
+}

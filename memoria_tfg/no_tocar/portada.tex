@@ -1,0 +1,47 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AQUÍ NO TIENES QUE TOCAR NADA, LA PORTADA SE GENERA AUTOMÁTICAMENTE
+% (c) 2023, Fernando Rodríguez Sela
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{titlepage}
+    % Bordes y fondo
+    \usetikzlibrary{calc}
+    \backgroundsetup{angle = 0, scale = 1, vshift = -2ex,
+      contents = {\tikz[overlay, remember picture]
+        \draw [line width = 1pt, color = azulUAX]
+               ($(current page.north west)+(1cm,-1cm)$)
+               rectangle
+               ($(current page.south east)+(-1,1)$);
+      }
+    }
+    
+    % En esta página usamos menos márgenes
+    \newgeometry{total={180mm, 250mm}}
+
+    \begin{center}
+        \vspace{2cm}
+        \bfseries{\huge UNIVERSIDAD ALFONSO X EL SABIO \par}      
+        \vspace{1cm}
+        \bfseries{\LARGE ESCUELA POLITÉCNICA SUPERIOR \par}
+        \vspace{1cm}
+        \bfseries{\Large GRADO EN INGENIERÍA DE \grado \par}
+    \end{center}
+
+    \vspace{1.5cm}
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=0.8\textwidth]{resources/logoUAX.png}
+    \end{figure}
+    
+    \begin{center}
+        \vspace{1.5cm}
+        \bfseries{\Huge TRABAJO DE FIN DE GRADO \par}
+        \vspace{2cm}
+        \bfseries{\Large \thetitle \par}
+        \vspace{2cm}
+        \bfseries{\Large \theauthor \par}
+        \vfill
+        \bfseries{\large \thedate \par}
+    \end{center}
+    
+\end{titlepage}

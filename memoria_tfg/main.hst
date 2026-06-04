@@ -1,0 +1,3 @@
+\def \vhCurrentVersion {0.1}
+\def \vhCurrentDate {22/12/2022}
+\newsetsimple \vhAllAuthorsSet {FRS}
