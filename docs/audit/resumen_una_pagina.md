@@ -45,13 +45,16 @@ indistinguibles sobre estos datos.
 **Hipótesis alternativas descartadas con evidencia:** fuga por partición (0 solape de
 sujeto), duplicados (0 hashes cruzados), errores de métrica (cálculo verificado).
 
-## Figuras principales
+## Figuras principales (en `figures/principales/`)
 
 1. `auc_summary.png` — desplome del AUC al eliminar el confound (con IC95%).
 2. `embeddings_tsne.png` — el latente agrupa por procedencia (IXI≠NKI pese a ser ambos sanos).
 3. `confusion_matrices.png` — diagonal perfecta → colapso/inversión → azar.
-4. `gradcam/confound/*.png` — la atención cae en fondo/bordes, no en la lesión.
-5. (apoyo) `roc_curves.png`, `intensity_by_dataset.png`, `btc_kfold_bars.png`.
+4. `intensity_by_dataset.png` — el confound ya es visible en los píxeles crudos.
+
+*Figuras de apoyo en `figures/anexo/`:* `roc_curves.png`, `score_hist_*.png`,
+`btc_kfold_bars.png`, `embeddings_pca.png`, y `gradcam/` (análisis exploratorio;
+los mapas resaltan bordes/periferia de forma no concluyente — se reporta con cautela).
 
 ## Conclusión / contribución
 

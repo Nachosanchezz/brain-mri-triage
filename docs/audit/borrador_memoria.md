@@ -124,7 +124,7 @@ Para visualizar *qué* codifica internamente el modelo confundido se extrajo,
 para los 2267 volúmenes, el vector de 96 dimensiones de la última capa
 convolucional (salida de `AdaptiveAvgPool3d`, antes del clasificador) y se
 proyectó a 2D mediante PCA y t-SNE
-(`docs/audit/figures/embeddings_{pca,tsne}.png`). Se cuantificó la compacidad
+(`figures/principales/embeddings_tsne.png` y `figures/anexo/embeddings_pca.png`). Se cuantificó la compacidad
 del agrupamiento con el coeficiente *silhouette*
 (`docs/audit/embeddings_silhouette.json`):
 
@@ -170,13 +170,13 @@ investigación con protocolos más dispares.
 
 ### Pasos auxiliares — confound en datos crudos y matrices de confusión
 - **Distribución de intensidades por dataset**
-  (`docs/audit/figures/intensity_by_dataset.png`): los cuatro datasets son
+  (`figures/principales/intensity_by_dataset.png`): los cuatro datasets son
   separables ya en estadísticos triviales (fracción de vóxeles no-cero, media
   y percentiles de intensidad), confirmando que el confound existe **antes**
   de entrar al modelo, en los propios píxeles. Esto explica por qué la *tiny
   baseline* lineal del Paso 2 alcanza AUC 1.0.
 - **Matrices de confusión por régimen**
-  (`docs/audit/figures/confusion_matrices.png`): comparan visualmente
+  (`figures/principales/confusion_matrices.png`): comparan visualmente
   confounded (diagonal perfecta), LODO A, LODO B (colapso/inversión) y Ghent
   intra-dominio (dispersión propia del azar).
 
@@ -291,25 +291,31 @@ documentada:
 
 ## 5-bis. Inventario de figuras para la memoria
 
-Todas en `docs/audit/figures/`. La columna "mensaje" sirve como pie de figura.
+Organizadas en `docs/audit/figures/{principales,anexo}/`. La columna "mensaje"
+sirve como pie de figura.
+
+**Principales** (`figures/principales/`) — las que van al cuerpo de la memoria:
 
 | Figura | Mensaje que transmite |
 |---|---|
 | `auc_summary.png` | El AUC se desploma de ~1.0 a azar al eliminar el confound (barras con IC95%). Figura resumen. |
+| `embeddings_tsne.png` (E1) | **Figura estrella**: el latente agrupa por procedencia; IXI y NKI (ambos sanos) no se fusionan. |
+| `confusion_matrices.png` (E3) | Diagonal perfecta (confounded) → colapso/inversión (LODO) → dispersión (intra-dominio). |
+| `intensity_by_dataset.png` (E2) | El confound existe ya en los píxeles crudos (estadísticos de intensidad separables por dataset). |
+
+**Anexo** (`figures/anexo/`) — apoyo:
+
+| Figura | Mensaje que transmite |
+|---|---|
 | `roc_curves.png` | Confounded pega al techo; LODO se aleja; intra-dominio cae a la diagonal. |
 | `score_hist_confound.png` | El run confundido da scores bimodales extremos por dataset, no por contenido. |
 | `score_hist_lodo.png` | En cross-dataset los scores se descolocan (LODO A y B). |
-| `confusion_matrices.png` (E3) | Diagonal perfecta (confounded) → colapso/inversión (LODO) → dispersión (intra-dominio). |
 | `btc_kfold_bars.png` | Intra-dominio: AUC por fold disperso en torno al azar, IC95% ancho. |
-| `embeddings_tsne.png` (E1) | **Figura estrella**: el latente agrupa por procedencia; IXI y NKI (ambos sanos) no se fusionan. |
-| `embeddings_pca.png` (E1) | Versión lineal del anterior, con varianza explicada. |
-| `intensity_by_dataset.png` (E2) | El confound existe ya en los píxeles crudos (estadísticos de intensidad separables por dataset). |
-| `gradcam/confound/*.png` | El mapa de atención cae en fondo/bordes, no en la lesión. |
-| `gradcam/lodo_{A,B}/*.png` | Apoyo: a qué atiende el modelo cross-dataset. |
+| `embeddings_pca.png` (E1) | Versión lineal del t-SNE, con varianza explicada. |
+| `gradcam/confound/*.png`, `gradcam/lodo_{A,B}/*.png` | Análisis exploratorio; los mapas resaltan bordes/periferia de forma **no concluyente** → reportar con cautela. |
 
-**Selección mínima si hay que recortar:** `auc_summary`, `embeddings_tsne`,
-`confusion_matrices`, un `gradcam/confound`. Esas cuatro cuentan la historia
-completa.
+**Selección mínima para enviar a Jorge / cuerpo de la memoria:** las 4 de
+`principales/`. Cuentan la historia completa sin necesidad del anexo.
 
 ---
 
