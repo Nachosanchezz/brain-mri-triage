@@ -21,7 +21,8 @@
 % PARA SU REVISIÓN. Se mostrarán números de línea que facilitarán
 % el seguimiento así como las versiones
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paraRevision
+% Números de línea desactivados a petición del autor
+%\paraRevision
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RELLENA ESTA INFORMACIÓN CON LOS DATOS DE TU TFG
@@ -30,16 +31,18 @@
 \title{Priorización automática de RM cerebral mediante aprendizaje profundo: análisis crítico del sesgo de dominio en datasets públicos multi-fuente}
 \subject{Trabajo fin de grado}
 \author{Ignacio Sánchez Calabrese}
-\np{}            % TODO: número de personal/expediente
-\tutor{}         % TODO: nombre del tutor académico
-\tutorEmpresa{}  % TODO: tutor/empresa (si aplica)
+\np{145657}
+\tutor{Jorge Calvo Martín}
+\tutorEmpresa{}  % Sin tutor empresarial
 \date{Junio de 2026}
 \palabrasClave{UAX,TFG,RM cerebral,deep learning,sesgo de dominio}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ESCRIBE UN BREVE RESUMEN (20 LÍNEAS) PARA LA PÁGINA 1
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\resumen{Resumen pendiente de redacción.}  % TODO: redactar resumen (~20 líneas)
+\resumen{
+La creciente carga asistencial en radiología motiva el desarrollo de sistemas de priorización (triaje) automática de las resonancias con hallazgos urgentes, como las masas tumorales. Este trabajo aborda la clasificación binaria tumor/no tumor en RM cerebral con una red convolucional 3D (CNN 3D) entrenada sobre datos públicos multi-fuente (BraTS, UPENN-GBM, IXI y NKI Rockland). El modelo alcanza un rendimiento casi perfecto (AUC = 0.9999; sensibilidad 0.994; especificidad 1.000), pero una auditoría lo desmonta: un \textit{baseline} trivial de intensidad, sin red neuronal, también logra AUC = 1.0000; fuera de dominio (\textit{leave-one-dataset-out}) el AUC cae a 0.6236 y 0.2012 (inversión de signo); y en una cohorte de un solo escáner la CNN rinde al azar (AUC = 0.4036; IC95\% [0.21, 0.62]). El rendimiento aparente obedece a un \textit{confound} dominio-clase (\textit{shortcut learning}), no a detección clínica. Se discuten las condiciones para un triaje radiológico válido con datos públicos multi-fuente.
+}
 
 \metadatos  % Incluir metadatos en el PDF generado
 \begin{document}
@@ -51,7 +54,16 @@
 % Y SI QUIERES PONER UNA DEDICATORIA
 % EN CASO CONTRARIO, BORRA ESTAS LÍNEAS O COMENTA (% al principio)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\dedicatoria{A mi familia que ha creído en mí}
+\dedicatoria{
+A mi madre que siempre ha estado conmigo apoyándome, aconsejándome y guiándome. \\[1em]
+A mi padre que siempre ha confiado en mí. \\[1em]
+A mis hermanos, por su apoyo incondicional. \\[1em]
+A mi familia, por su cariño y confianza. \\[1em]
+A Almu, por ser mi referente y por impulsarme con tu fuerza y tus ganas. \\[1em]
+A mis amigos, por no dejarme caer y por estar siempre ahí. \\[1em]
+A mis profesores, por su dedicación y por compartir su conocimiento conmigo. \\[1em]
+Este trabajo es para todos vosotros, que me habéis ayudado a llegar hasta aquí.
+}
 \include{no_tocar/dedicatoria}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -59,7 +71,14 @@
 % que realizas entre cada entrega a revisión.
 % Esta lista no se mostrará en tu entrega final, ayudará al seguimiento
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\ifinreview \include{versiones} \fi
+% Historial de revisiones desactivado a petición del autor
+%\ifinreview \include{versiones} \fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Página de Resumen separada DESACTIVADA: el resumen va en la "Breve
+% descripción" de la página oficial (\resumen{} arriba).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\include{secciones/resumen}
 
 \tableofcontents
 

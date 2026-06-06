@@ -1,9 +1,5 @@
 [0] Config.pm:328> INFO - This is Biber 2.21
 [0] Config.pm:331> INFO - Logfile is 'main.blg'
-[183] biber-MSWIN64:342> INFO - === 
-[235] Biber.pm:421> INFO - Reading 'main.bcf'
-[338] Biber.pm:1002> INFO - Found 0 citekeys in bib section 0
-[349] bbl.pm:676> INFO - Writing 'main.bbl' with encoding 'UTF-8'
-[350] bbl.pm:779> INFO - Output to main.bbl
-[350] Biber.pm:132> WARN - The file 'main.bcf' does not contain any citations!
-[350] Biber.pm:134> INFO - WARNINGS: 1
+[137] biber-MSWIN64:342> INFO - === 
+[558] Utils.pm:479> ERROR - Cannot find control file 'main.bcf'! - Did latex run successfully on your .tex file before you ran biber?
+[559] Biber.pm:137> INFO - ERRORS: 1

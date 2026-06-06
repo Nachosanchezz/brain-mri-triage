@@ -119,8 +119,8 @@
 \setlength\headheight{42pt}
 \pagestyle{fancy}
 \fancyhf{}
-\lhead{\includegraphics[width=4cm]{resources/logoUAX.png}}
-\rhead{\thechapter\ \currentchapter}
+\lhead{\includegraphics[height=32pt]{resources/logoUAX.png}}
+\rhead{\ifnum\value{chapter}>0\relax \thechapter\ \currentchapter\fi}
 \lfoot{
   \includegraphics[height=10pt]{resources/uax_gt.png}
   GRADO EN INGENIERÍA DE \grado
@@ -134,7 +134,7 @@
 
 \fancypagestyle{plain}{%    Páginas de título de capítulo e índices
   \fancyhf{}%
-  \lhead{\includegraphics[width=6cm]{resources/logoUAX.png}}
+  \lhead{\includegraphics[height=32pt]{resources/logoUAX.png}}
   \lfoot{
     \includegraphics[height=10pt]{resources/uax_gt.png}
     GRADO EN INGENIERÍA \grado
@@ -158,8 +158,8 @@
     \ChTitleVar{\Huge\bfseries\centering\color{azulUAX}}
 
 \usepackage{titlesec}   % Configuración títulos secciones
-    \titleformat{\section}{\Large\bfseries\color{azulUAX}}{\thesection\ \includegraphics[height=10pt]{resources/uax_gt.png}}{5pt}{}
-    \titleformat{\subsection}{\bfseries\color{azulUAX}}{\thesubsection\ \includegraphics[height=8pt]{resources/uax_gt.png}}{5pt}{}
+    \titleformat{\section}{\Large\bfseries\color{azulUAX}}{\thesection}{10pt}{}
+    \titleformat{\subsection}{\bfseries\color{azulUAX}}{\thesubsection}{10pt}{}
     \titleformat{\subsubsection}{\bfseries\color{azulUAX}}{}{5pt}{}
     \titleformat{\paragraph}{\bfseries\color{azulUAX}}{}{5pt}{}
     \titleformat{\subparagraph}{\bfseries\color{azulUAX}}{}{5pt}{}
