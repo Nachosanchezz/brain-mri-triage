@@ -73,7 +73,7 @@
 \contentsline {chapter}{\numberline {A}Detalle de preprocesado y configuraciones}{48}{appendix.Alph1}%
 \contentsline {section}{\numberline {A.1}Pipeline de preprocesado}{48}{section.Alph1.1}%
 \contentsline {section}{\numberline {A.2}Hiperparámetros del entrenamiento principal (pool)}{48}{section.Alph1.2}%
-\contentsline {section}{\numberline {A.3}Variantes: LODO e intra-dominio BTC}{50}{section.Alph1.3}%
+\contentsline {section}{\numberline {A.3}Variantes: LODO e intra-dominio BTC}{49}{section.Alph1.3}%
 \contentsline {section}{\numberline {A.4}Aumento de datos (detalle)}{50}{section.Alph1.4}%
 \contentsline {chapter}{\numberline {B}Tabla maestra de resultados y detalle por fold}{51}{appendix.Alph2}%
 \contentsline {section}{\numberline {B.1}Arco completo por régimen}{51}{section.Alph2.1}%

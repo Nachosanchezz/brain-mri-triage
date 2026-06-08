@@ -41,42 +41,13 @@ La Tabla~\ref{tab:apx_hiper} reproduce la configuración completa de
 \texttt{configs/train\_3d.yaml}. Las proporciones de partición son
 70\,\% / 15\,\% / 15\,\% (entrenamiento/validación/test), con estratificación
 conjunta por \texttt{(dataset, label)} y agrupación por sujeto
-(\texttt{seed}~=~42). La Tabla~\ref{tab:apx_splits} resume la composición de los
-splits. El conjunto de test está verificado contra las predicciones versionadas
-(\texttt{cnn3d\_test\_predictions.csv}); los recuentos por clase de entrenamiento
-y validación se derivan de los totales del pool y son consistentes con el tamaño
-de cada partición. El desglose por dataset de entrenamiento y validación del run
-oficial no se reporta porque el fichero de \emph{split} original no está versionado
-y el \texttt{splits.json} disponible localmente corresponde a una regeneración que
-reproduce los totales por clase pero no la composición exacta por dataset del test
-oficial (véase la nota al pie de la tabla).
-
-\begin{table}[ht]
-  \centering
-  \caption[Composición de los splits del pool]{Composición de la partición del
-  pool multi-fuente. El test está verificado contra
-  \texttt{cnn3d\_test\_predictions.csv}; los recuentos por clase de entrenamiento
-  y validación son derivados y consistentes ($1587+340+340=2267$).}
-  \label{tab:apx_splits}
-  \begin{tabular}{l c c c c c c c l}
-    \hline
-    \textbf{Partición} & \textbf{$n$} & \textbf{Pos.} & \textbf{Neg.} & \textbf{BraTS} & \textbf{UPENN} & \textbf{IXI} & \textbf{NKI} & \textbf{Estado} \\
-    \hline
-    Entrenamiento & 1587 & 817 & 770 & --- & --- & --- & --- & derivado\textsuperscript{a} \\
-    Validación    & 340  & 175 & 165 & --- & --- & --- & --- & derivado\textsuperscript{a} \\
-    Test          & 340  & 175 & 165 & 87  & 88  & 86  & 79  & verificado \\
-    \hline
-    \textbf{Total} & \textbf{2267} & 1167 & 1100 & 580 & 587 & 577 & 523 & \\
-    \hline
-  \end{tabular}
-
-  \vspace{2pt}
-  {\footnotesize \textsuperscript{a} Los recuentos por clase de entrenamiento y
-  validación se derivan de los totales del pool y del test verificado; el desglose
-  por dataset queda pendiente de una re-auditoría formal del \emph{split} original
-  del run, ejecutando \texttt{python -m src.data.audit\_splits} sobre dicho fichero
-  (no versionado).}
-\end{table}
+(\texttt{seed}~=~42). La Tabla~\ref{tab:apx_splits} detalla la composición de la
+partición del run final. El reparto se realiza a nivel de sujeto y cada estudio
+aporta un único volumen, por lo que el número de sujetos coincide con el de
+muestras en cada partición; no existe solapamiento de sujetos entre conjuntos
+(train\,$\cap$\,val = train\,$\cap$\,test = val\,$\cap$\,test = 0). La composición
+del conjunto de test coincide con las predicciones oficiales
+(\texttt{cnn3d\_test\_predictions.csv}).
 
 \begin{table}[ht]
   \centering
@@ -124,6 +95,31 @@ training:
   pos_weight: 1.0
   min_sensitivity_for_save: 0.80
 \end{verbatim}
+
+\begin{table}[ht]
+  \centering
+  \caption[Composición de los splits del pool]{Composición de la partición del
+  pool multi-fuente (run final). Los totales por dataset coinciden con la
+  composición del pool (580 / 587 / 577 / 523).}
+  \label{tab:apx_splits}
+  \begin{tabular}{l c c c c c c c}
+    \hline
+    \textbf{Partición} & \textbf{$n$} & \textbf{Pos.} & \textbf{Neg.} & \textbf{BraTS} & \textbf{UPENN} & \textbf{IXI} & \textbf{NKI} \\
+    \hline
+    Entrenamiento & 1587 & 817  & 770  & 406 & 411 & 404 & 366 \\
+    Validación    & 340  & 175  & 165  & 87  & 88  & 87  & 78  \\
+    Test          & 340  & 175  & 165  & 87  & 88  & 86  & 79  \\
+    \hline
+    \textbf{Total} & \textbf{2267} & 1167 & 1100 & 580 & 587 & 577 & 523 \\
+    \hline
+  \end{tabular}
+
+  \vspace{2pt}
+  {\footnotesize Composición obtenida del \emph{split} oficial recuperado del run
+  final (\texttt{splits\_confound\_original\_official.json}) y cruzada con
+  \texttt{audit\_features.csv}; el conjunto de test se verificó además contra
+  \texttt{cnn3d\_test\_predictions.csv}.}
+\end{table}
 
 \section{Variantes: LODO e intra-dominio BTC}
 

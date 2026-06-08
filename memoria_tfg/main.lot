@@ -22,8 +22,8 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \contentsline {table}{\numberline {A.1}{\ignorespaces Pasos del pipeline de preprocesado}}{48}{table.caption.19}%
-\contentsline {table}{\numberline {A.2}{\ignorespaces Composición de los splits del pool}}{49}{table.caption.20}%
-\contentsline {table}{\numberline {A.3}{\ignorespaces Hiperparámetros completos del entrenamiento (pool)}}{49}{table.caption.21}%
+\contentsline {table}{\numberline {A.2}{\ignorespaces Hiperparámetros completos del entrenamiento (pool)}}{49}{table.caption.20}%
+\contentsline {table}{\numberline {A.3}{\ignorespaces Composición de los splits del pool}}{50}{table.caption.21}%
 \contentsline {table}{\numberline {A.4}{\ignorespaces Configuración del experimento intra-dominio BTC}}{50}{table.caption.22}%
 \contentsline {table}{\numberline {A.5}{\ignorespaces Transformaciones de aumento de datos}}{50}{table.caption.23}%
 \addvspace {10\p@ }

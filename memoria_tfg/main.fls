@@ -1046,8 +1046,6 @@ INPUT .\resources\uax_gt.png
 INPUT .\resources\uax_gt.png
 INPUT .\resources\uax_lt.png
 INPUT C:\Users\1cnac\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm1000.tfm
-INPUT C:\Users\1cnac\AppData\Local\Programs\MiKTeX\fonts\tfm\public\amsfonts\cmextra\cmex7.tfm
-INPUT C:\Users\1cnac\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm0700.tfm
 INPUT C:\Users\1cnac\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecti1000.tfm
 INPUT C:\Users\1cnac\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ectt1000.tfm
 INPUT .\resources\logoUAX.png
@@ -1332,8 +1330,6 @@ INPUT C:\Users\1cnac\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ect
 INPUT C:\Users\1cnac\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecti1000.pk
 INPUT C:\Users\1cnac\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1000.pk
 INPUT C:\Users\1cnac\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm1000.pk
-INPUT C:\Users\1cnac\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm0700.pk
-INPUT C:\Users\1cnac\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm0700.pk
 INPUT C:\Users\1cnac\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbi1728.pk
 INPUT C:\Users\1cnac\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecbi1728.pk
 INPUT C:\Users\1cnac\AppData\Local\MiKTeX\fonts\pk\ljfour\jknappen\ec\dpi600\ecrm0800.pk
