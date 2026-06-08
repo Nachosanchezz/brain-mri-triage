@@ -1,8 +1,57 @@
 \chapter{Limitaciones y líneas futuras}
-% TODO: redactar capítulo de limitaciones y líneas futuras
 
 \section{Limitaciones del estudio}
-% TODO
+
+El alcance de las conclusiones está acotado por varias limitaciones que conviene
+declarar con honestidad. La principal es de \textbf{potencia estadística}: el
+experimento de validación intra-dominio ---el único que evalúa la detección con el
+confound controlado por construcción--- se realizó sobre una cohorte de 36
+sujetos, lo que produce intervalos de confianza anchos que cruzan el valor de
+azar. En consecuencia, este experimento solo autoriza a afirmar que \emph{no se
+observa señal por encima del azar} con el tamaño muestral disponible; no permite
+concluir que el modelo sea incapaz de detectar lesión, ni interpretar un valor por
+debajo del azar como una capacidad anti-correlacionada. La ausencia de evidencia
+no equivale a evidencia de ausencia.
+
+Una segunda limitación es la \textbf{falta de validación externa real}. La cohorte
+inicialmente prevista como conjunto externo se incorporó al entrenamiento, por lo
+que no queda una cohorte de tumor externa no vista por el modelo; la validación
+cruzada por dominio empleada es \emph{cross-dataset} dentro del propio pool, no una
+validación externa en sentido estricto. En tercer lugar, la entrada se restringió
+a las secuencias estructurales T1 y T2, sin contraste, FLAIR ni configuraciones
+multiparamétricas: fue una decisión metodológica deliberada para favorecer la
+comparabilidad entre cohortes, pero limita la riqueza clínica de la
+representación. Por último, el resultado es de naturaleza crítica: demuestra la
+presencia del confound, no la imposibilidad de detección; y los mapas de atención
+explorados (Grad-CAM) tuvieron carácter exploratorio y no concluyente, por lo que
+no sustentan afirmaciones sobre la capacidad del modelo.
 
 \section{Propuestas de mejora y líneas futuras}
-% TODO
+
+La vía de mejora más importante es de \textbf{datos}. La condición necesaria para
+evaluar la detección sin contaminación es romper la equivalencia entre clase y
+procedencia, lo que exige cohortes en las que cada centro aporte ambas clases
+---tumor y control--- adquiridas en el mismo dominio. En la misma línea, una
+validación externa real requeriría una cohorte de tumor independiente no vista
+durante el entrenamiento; una candidata es el depósito de Edimburgo disponible a
+través del UK Data Service (referencia SN-851861), cuyo acceso está sujeto a
+registro.
+
+Una segunda línea es la \textbf{armonización y la adaptación de dominio}. Técnicas
+como ComBat~\cite{johnson2007combat,fortin2017harmonization}, para reducir los
+efectos de escáner, o el entrenamiento adversarial de dominio
+(DANN)~\cite{ganin2016dann}, para aprender representaciones invariantes a la
+procedencia, son candidatas naturales. Conviene precisar, no obstante, su orden de
+aplicación: estas técnicas presuponen que el dominio y la clase no están
+perfectamente confundidos, por lo que con una equivalencia clase-dataset del
+100\,\% no son aplicables por sí solas. Primero es necesario romper esa
+equivalencia mediante datos con ambas clases por centro; una vez hecho, ComBat y
+DANN pueden reducir los efectos de escáner residuales. Son, pues, complementarias
+a la corrección de la composición de los datos, no sustitutas de ella.
+
+Finalmente, otras líneas naturales son la incorporación de entradas
+multiparamétricas una vez controlado el confound, la reunión de cohortes
+intra-dominio de mayor tamaño que proporcionen potencia estadística suficiente, y
+la generalización del protocolo de auditoría anti-confounding a otros problemas de
+imagen médica en los que la procedencia de los datos pueda confundirse con la
+variable de interés.

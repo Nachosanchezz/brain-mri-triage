@@ -1,0 +1,47 @@
+{
+  "_descripcion": "Auditoría compacta de la partición del run confundido (pool multi-fuente). Artefacto citable para el capítulo de Diseño experimental / Materiales.",
+  "_fuentes": {
+    "test": "docs/audit/cnn3d_test_predictions.csv (versionado) — VERIFICADO con código",
+    "train_val": "splits_confound_original.json (equipo UAX) — derivado; transferir como fichero para re-auditar con src.data.audit_splits",
+    "totales": "docs/audit/preprocessing_summary.json"
+  },
+  "seed": 42,
+  "nivel_particion": "por sujeto (subject_id); 1 fichero = 1 sujeto -> n_samples == n_subjects",
+  "verificacion_una_sesion_por_sujeto": "VERIFICADO (2026-06-06): 523 .npz de NKI y 0 pacientes (A-number) con >1 sesion -> cada sujeto aporta 1 volumen tras el filtrado T1w+T2w misma sesion. BraTS/UPENN/IXI son 1 fichero/sujeto por naturaleza. Conclusion: la particion agrupada por subject_id (create_splits en src/data/dataset_3d.py, que mantiene juntas las sesiones de un mismo sujeto) es a la vez a nivel de sujeto y de fichero; NO hay posibilidad de fuga inter-sesion del mismo paciente.",
+  "estratificacion": "conjunta por (dataset, label)",
+  "totales_pool": {
+    "total": 2267,
+    "positivos": 1167,
+    "negativos": 1100
+  },
+  "splits": {
+    "test": {
+      "n": 340,
+      "n_subjects": 340,
+      "n_pos": 175,
+      "n_neg": 165,
+      "by_dataset": { "brats": 87, "upenn": 88, "ixi": 86, "nki_rockland": 79 },
+      "estado": "VERIFICADO (cnn3d_test_predictions.csv: 340 sujetos únicos)"
+    },
+    "val": {
+      "n": 340,
+      "n_pos": 175,
+      "n_neg": 165,
+      "estado": "derivado (2267 - train 1587 - test 340 = 340); re-auditar con audit_splits"
+    },
+    "train": {
+      "n": 1587,
+      "n_pos": 817,
+      "n_neg": 770,
+      "_nota_pos_neg": "derivado asumiendo val 175/165 igual que test: pos=1167-175-175=817; neg=1100-165-165=770 (817+770=1587). Confirmar re-ejecutando src.data.audit_splits.",
+      "estado": "derivado; tamaño total consistente (1587+340+340=2267)"
+    }
+  },
+  "subject_overlap": {
+    "train_int_val": 0,
+    "train_int_test": 0,
+    "val_int_test": 0,
+    "metodo": "garantizado por construcción (create_splits agrupa por subject_id, seed=42); test confirmado con 340 subject_id únicos en el CSV. Para prueba formal sobre las tres particiones, ejecutar: python -m src.data.audit_splits"
+  },
+  "reproducir": "python -m src.data.audit_splits  (imprime composición por (split,dataset,label) y los tres solapamientos)"
+}

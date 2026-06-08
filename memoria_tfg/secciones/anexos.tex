@@ -4,13 +4,492 @@
 \appendix
 
 \chapter{Detalle de preprocesado y configuraciones}
-% TODO
+
+Este apéndice recoge la receta completa de preprocesado y la configuración íntegra
+de los experimentos, como complemento a los capítulos de materiales y metodología.
+Todos los valores proceden del código fuente y de los ficheros de
+\texttt{configs/}.
+
+\section{Pipeline de preprocesado}
+
+Todas las cohortes se procesaron con la misma secuencia
+(Tabla~\ref{tab:apx_preproc}), de modo que las diferencias residuales entre
+datasets no se deban a tratamientos distintos. La lógica común reside en
+\texttt{src/preprocessing/base\_preprocessing.py}.
+
+\begin{table}[ht]
+  \centering
+  \caption[Pasos del pipeline de preprocesado]{Pasos del pipeline de preprocesado
+  común a todas las cohortes.}
+  \label{tab:apx_preproc}
+  \begin{tabular}{c l l}
+    \hline
+    \textbf{Paso} & \textbf{Operación} & \textbf{Detalle} \\
+    \hline
+    1 & Extracción cerebral   & HD-BET (\emph{skull-stripping} con red neuronal) \\
+    2 & Reorientación         & ejes RAS \\
+    3 & Remuestreo            & 1\,mm\textsuperscript{3} isótropo \\
+    4 & Recorte/relleno       & 192\,$\times$\,224\,$\times$\,192 vóxeles \\
+    5 & Normalización         & \emph{z-score} sobre tejido (umbral de Otsu) \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\section{Hiperparámetros del entrenamiento principal (pool)}
+
+La Tabla~\ref{tab:apx_hiper} reproduce la configuración completa de
+\texttt{configs/train\_3d.yaml}. Las proporciones de partición son
+70\,\% / 15\,\% / 15\,\% (entrenamiento/validación/test); el conjunto de test
+quedó compuesto por 340 estudios (175 positivos y 165 negativos), mientras que los
+recuentos absolutos por clase de entrenamiento y validación no se reportan aquí
+por no estar disponibles en un fichero versionado.
+
+\begin{table}[ht]
+  \centering
+  \caption[Hiperparámetros completos del entrenamiento (pool)]{Configuración
+  completa del entrenamiento principal (\texttt{configs/train\_3d.yaml}).}
+  \label{tab:apx_hiper}
+  \begin{tabular}{l l l}
+    \hline
+    \textbf{Bloque} & \textbf{Parámetro} & \textbf{Valor} \\
+    \hline
+    Modelo  & in\_channels        & 2 (T1, T2) \\
+            & n\_classes          & 1 (logit) \\
+            & base\_channels      & 12 \\
+            & dropout             & 0,25 \\
+    \hline
+    Datos   & batch\_size         & 1 \\
+            & crop\_shape         & 128\,$\times$\,160\,$\times$\,128 \\
+            & random\_crop\_train & no (recorte centrado) \\
+            & augment\_train      & sí \\
+            & train/val ratio     & 0,70 / 0,15 \\
+            & seed                & 42 \\
+    \hline
+    Entren. & n\_epochs           & 40 \\
+            & optimizador         & AdamW \\
+            & lr                  & $5\times10^{-5}$ \\
+            & weight\_decay       & $1\times10^{-3}$ \\
+            & scheduler           & CosineAnnealingLR \\
+            & pos\_weight         & 1,0 \\
+            & amp                 & desactivada \\
+            & patience            & 10 \\
+            & sel.\ checkpoint     & balanced acc.\ con sen $\geq$ 0,80 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+A modo ilustrativo, el bloque de entrenamiento del fichero de configuración tiene
+la forma siguiente:
+
+\begin{verbatim}
+training:
+  n_epochs: 40
+  lr: 5.0e-5
+  weight_decay: 1.0e-3
+  scheduler: cosine
+  pos_weight: 1.0
+  min_sensitivity_for_save: 0.80
+\end{verbatim}
+
+\section{Variantes: LODO e intra-dominio BTC}
+
+El régimen \emph{leave-one-dataset-out} reutiliza \texttt{configs/train\_lodo.yaml},
+idéntico al principal salvo dos cambios: \texttt{recreate\_splits: false} (lee la
+partición por dataset preparada aparte) y un directorio de salida propio. El
+experimento intra-dominio BTC se ejecuta con \texttt{src/audit/btc\_cnn\_kfold.py}
+y difiere en lo recogido en la Tabla~\ref{tab:apx_btc}.
+
+\begin{table}[ht]
+  \centering
+  \caption[Configuración del experimento intra-dominio BTC]{Parámetros del
+  experimento intra-dominio BTC (\texttt{btc\_cnn\_kfold.py}); el resto coincide
+  con el entrenamiento principal.}
+  \label{tab:apx_btc}
+  \begin{tabular}{l l}
+    \hline
+    \textbf{Parámetro} & \textbf{Valor} \\
+    \hline
+    in\_channels            & 1 (solo T1) \\
+    validación              & $k$-fold, $k=5$, estratificada por sujeto \\
+    épocas por fold         & 20 (fijas, sin \emph{early stopping}) \\
+    lr / weight\_decay      & $5\times10^{-5}$ / $1\times10^{-3}$ \\
+    pos\_weight             & calculado por fold \\
+    seed                    & 42 \\
+    \emph{bootstrap} IC95\%  & 2000 remuestreos \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\section{Aumento de datos (detalle)}
+
+El aumento de datos se aplica solo al conjunto de entrenamiento
+(Tabla~\ref{tab:apx_aug}); las transformaciones de intensidad se restringen a los
+vóxeles no nulos (máscara de cerebro). Fuente: \texttt{src/data/dataset\_3d.py}.
+
+\begin{table}[ht]
+  \centering
+  \caption[Transformaciones de aumento de datos]{Transformaciones de aumento de
+  datos aplicadas en entrenamiento.}
+  \label{tab:apx_aug}
+  \begin{tabular}{l l}
+    \hline
+    \textbf{Transformación} & \textbf{Parámetros} \\
+    \hline
+    Reflexiones espaciales & 3 ejes, $p=0,5$ por eje, compartidas T1/T2 \\
+    Corrección gamma       & factor $\sim U(0,8;\ 1,25)$, $p=0,5$, solo tejido \\
+    Ruido gaussiano        & $\sigma = 0,03$, $p=0,5$, solo tejido \\
+    \hline
+  \end{tabular}
+\end{table}
 
 \chapter{Tabla maestra de resultados y detalle por fold}
-% TODO
+
+Este apéndice reúne el detalle numérico completo que el capítulo de resultados
+sintetiza. Cada cifra es trazable al fichero de \texttt{docs/audit/} indicado en
+el pie de cada tabla. Se emplea coma decimal y los intervalos de confianza se
+expresan con punto y coma ($[a;\ b]$) para no confundirlos con la coma decimal.
+
+\section{Arco completo por régimen}
+
+\begin{table}[ht]
+  \centering
+  \caption[Arco de validación completo]{AUC por régimen y modelo. Fuente:
+  \texttt{resumen\_consolidado.json}.}
+  \label{tab:apx_arco}
+  \begin{tabular}{l l c c}
+    \hline
+    \textbf{Régimen} & \textbf{Modelo} & \textbf{AUC} & \textbf{IC95\%} \\
+    \hline
+    Pool (confundido)   & CNN 3D                 & 0,9999 & --- \\
+    Pool (confundido)   & \emph{Baseline} LogReg & 1,0000 & --- \\
+    Pool (confundido)   & \emph{Baseline} RF     & 0,9989 & --- \\
+    LODO A              & CNN 3D                 & 0,6236 & --- \\
+    LODO B              & CNN 3D                 & 0,2012 & --- \\
+    Intra-dominio BTC   & CNN 3D                 & 0,4036 & [0,213;\ 0,623] \\
+    Intra-dominio BTC   & \emph{Baseline} LogReg & 0,5491 & [0,319;\ 0,788] \\
+    Intra-dominio BTC   & \emph{Baseline} RF     & 0,4055 & [0,215;\ 0,616] \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\section{Pool multi-fuente: detalle global y por dataset}
+
+\begin{table}[ht]
+  \centering
+  \caption[Métricas globales del pool]{Métricas globales en el test del pool
+  ($n=340$). Fuente: \texttt{cnn3d\_test\_results.json}.}
+  \label{tab:apx_pool_glob}
+  \begin{tabular}{l c}
+    \hline
+    \textbf{Métrica} & \textbf{Valor} \\
+    \hline
+    AUC-ROC               & 0,9999 (exacto 0,999965) \\
+    PR-AUC                & 0,99997 \\
+    Exactitud             & 0,99706 \\
+    Sensibilidad          & 0,9943 \\
+    Especificidad         & 1,000 \\
+    Precisión             & 1,000 \\
+    Valor predictivo neg. & 0,9940 \\
+    F1                    & 0,9971 \\
+    Balanced accuracy     & 0,9971 \\
+    Matriz @0,5 (TP/FP/TN/FN) & 174 / 0 / 165 / 1 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+  \centering
+  \caption[Resultados por dataset en el pool]{Resultados por dataset de origen.
+  La sensibilidad y la especificidad son indefinibles (---) en cohortes
+  monoclase. Fuente: \texttt{cnn3d\_test\_results.json}.}
+  \label{tab:apx_pool_ds}
+  \begin{tabular}{l c c c c}
+    \hline
+    \textbf{Dataset} & \textbf{$n$ (pos/neg)} & \textbf{Score medio} & \textbf{Sen.} & \textbf{Esp.} \\
+    \hline
+    BraTS        & 87 (87/0) & 0,986 $\pm$ 0,098  & 0,9885 & --- \\
+    UPENN        & 88 (88/0) & 0,9995 $\pm$ 0,0005 & 1,000  & --- \\
+    IXI          & 86 (0/86) & 0,0070 $\pm$ 0,018 & ---    & 1,000 \\
+    NKI Rockland & 79 (0/79) & 0,0008 $\pm$ 0,0005 & ---    & 1,000 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\section{Auditoría de fuga de información}
+
+\begin{table}[ht]
+  \centering
+  \caption[Auditoría de fuga: baseline trivial y clasificador de origen]{Baseline
+  trivial de intensidad, clasificador de origen, duplicados y relación
+  \texttt{label}$\equiv$\texttt{dataset}. Fuente: \texttt{audit\_leakage.json}.}
+  \label{tab:apx_leak}
+  \begin{tabular}{l c}
+    \hline
+    \textbf{Prueba} & \textbf{Valor} \\
+    \hline
+    \emph{Baseline} intensidad, LogReg (AUC / acc) & 1,0000 / 0,9941 \\
+    \emph{Baseline} intensidad, RF (AUC / acc)     & 0,9989 / 0,9882 \\
+    Clasificador de origen, intensidad (acc, 4 clases) & 0,9853 (azar 0,25) \\
+    Grupos de duplicados exactos cross-split       & 0 \\
+    \texttt{label}$\equiv$\texttt{dataset} & BraTS, UPENN $\to$ 1; IXI, NKI $\to$ 0 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+  \centering
+  \caption[Importancia de las características de intensidad]{Importancia de las 16
+  características de intensidad en el \emph{random forest} de etiqueta (orden
+  descendente). Fuente: \texttt{audit\_leakage.json} (\texttt{rf\_feature\_importance}).}
+  \label{tab:apx_featimp}
+  \begin{tabular}{l c l c}
+    \hline
+    \textbf{Característica} & \textbf{Imp.} & \textbf{Característica} & \textbf{Imp.} \\
+    \hline
+    nz\_frac\_t1 & 0,174 & p25\_t1 & 0,041 \\
+    p75\_t1      & 0,171 & p99\_t2 & 0,039 \\
+    p25\_t2      & 0,125 & p50\_t2 & 0,027 \\
+    nz\_frac\_t2 & 0,101 & p75\_t2 & 0,026 \\
+    p01\_t2      & 0,073 & mean\_t1 & 0,010 \\
+    p99\_t1      & 0,069 & mean\_t2 & 0,009 \\
+    p50\_t1      & 0,062 & std\_t1 & 0,007 \\
+    p01\_t1      & 0,062 & std\_t2 & 0,005 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\section{Validación cruzada por dominio (LODO)}
+
+\begin{table}[ht]
+  \centering
+  \caption[Detalle LODO: CNN y baseline]{Resultados \emph{leave-one-dataset-out}.
+  CNN en A y B; \emph{baseline} trivial en las cuatro configuraciones y la
+  referencia de mezcla aleatoria. Fuentes: \texttt{lodo\_A/B\_cnn3d\_test\_results.json}
+  y \texttt{audit\_lodo.json}.}
+  \label{tab:apx_lodo}
+  \begin{tabular}{l l c c c}
+    \hline
+    \textbf{Config.} & \textbf{Entrenamiento $\rightarrow$ test} & \textbf{CNN AUC} & \textbf{LogReg} & \textbf{RF} \\
+    \hline
+    A & BraTS+IXI $\rightarrow$ UPENN+NKI ($n=1110$) & 0,6236 & 0,9952 & 0,9889 \\
+    B & UPENN+NKI $\rightarrow$ BraTS+IXI ($n=1157$) & 0,2012 & 0,3184 & 0,6957 \\
+    C & BraTS+NKI $\rightarrow$ UPENN+IXI            & ---    & 0,0412 & 0,0338 \\
+    D & UPENN+IXI $\rightarrow$ BraTS+NKI            & ---    & 0,0469 & 0,2752 \\
+    Ref. & Mezcla aleatoria 70/30                    & ---    & 1,0000 & 0,9991 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Para la CNN, las métricas operativas a umbral 0,5 son: en A, sensibilidad 0,6763
+y especificidad 0,4627; en B, sensibilidad 0,0103 y especificidad 0,9653 (un AUC
+inferior a 0,5 indica inversión de la regla de decisión al cambiar de cohorte).
+Fuente: \texttt{lodo\_A/B\_cnn3d\_test\_results.json}.
+
+\section{Validación intra-dominio BTC: detalle por fold}
+
+\begin{table}[ht]
+  \centering
+  \caption[Detalle por fold de la CNN intra-dominio]{AUC por fold de la CNN 3D
+  (1 canal) en BTC ($n=36$, $k=5$). Fuente:
+  \texttt{btc\_intradomain\_cnn\_kfold\_results.json}.}
+  \label{tab:apx_btc_fold}
+  \begin{tabular}{c c c}
+    \hline
+    \textbf{Fold} & \textbf{$n$ test (pos/neg)} & \textbf{AUC} \\
+    \hline
+    1 & 8 (5/3) & 0,4 \\
+    2 & 7 (5/2) & 0,3 \\
+    3 & 7 (5/2) & 0,2 \\
+    4 & 7 (5/2) & 0,6 \\
+    5 & 7 (5/2) & 0,2 \\
+    \hline
+    \multicolumn{2}{l}{\textbf{Global} (AUC / IC95\%)} & 0,4036 / [0,213;\ 0,623] \\
+    \multicolumn{2}{l}{@0,5 (sen / spe)} & 0,60 / 0,3636 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+El \emph{baseline} trivial de intensidad sobre BTC (8 características de T1, $k=5$)
+obtiene, de forma agregada, AUC 0,5491 con IC95\% $[0,319;\ 0,788]$ (LogReg) y
+AUC 0,4055 con IC95\% $[0,215;\ 0,616]$ (RF). Todos los intervalos cruzan 0,5, por
+lo que con $n=36$ no se observa señal por encima del azar. Fuente:
+\texttt{btc\_intradomain\_tinybaseline.json}.
+
+\section{Espacio latente: silhouette y sondas intra-clase}
+
+\begin{table}[ht]
+  \centering
+  \caption[Análisis del espacio latente]{Coeficiente \emph{silhouette}, sondas
+  intra-clase (CV-AUC) y clasificador de dataset desde los embeddings. Fuentes:
+  \texttt{embeddings\_silhouette.json} y \texttt{embeddings\_intraclass.json}.}
+  \label{tab:apx_emb}
+  \begin{tabular}{l c}
+    \hline
+    \textbf{Medida} & \textbf{Valor} \\
+    \hline
+    \emph{Silhouette} por etiqueta            & 0,754 \\
+    \emph{Silhouette} por dataset             & 0,366 \\
+    IXI vs NKI (sanos): CV-AUC (\emph{silhouette}) & 0,998 (0,561) \\
+    BraTS vs UPENN (tumor): CV-AUC (\emph{silhouette}) & 0,991 (0,186) \\
+    Clf.\ de dataset desde embeddings (acc, 4 clases) & 0,982 (azar 0,25) \\
+    \hline
+  \end{tabular}
+\end{table}
 
 \chapter{Figuras adicionales}
-% TODO
+
+Este apéndice reúne las figuras de apoyo que no se incluyeron en el cuerpo.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figuras/anexo/roc_curves.png}
+  \caption[Curvas ROC por régimen]{Curvas ROC por régimen de evaluación: el
+  régimen confundido se pega al techo, mientras que el intra-dominio se aproxima a
+  la diagonal del azar.}
+  \label{fig:apx_roc}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figuras/anexo/score_hist_confound.png}
+  \caption[Histograma de scores (régimen confundido)]{Distribución de las
+  probabilidades emitidas por dataset en el régimen confundido: los valores son
+  bimodales por cohorte de origen, no por contenido clínico.}
+  \label{fig:apx_hist_conf}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figuras/anexo/score_hist_lodo.png}
+  \caption[Histograma de scores (LODO)]{Descolocación de las probabilidades en el
+  régimen cross-dataset (LODO A y B).}
+  \label{fig:apx_hist_lodo}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figuras/anexo/btc_kfold_bars.png}
+  \caption[AUC por fold en la validación intra-dominio]{AUC por fold en la
+  validación intra-dominio BTC, con intervalos de confianza anchos en torno al
+  azar.}
+  \label{fig:apx_btc_bars}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figuras/anexo/embeddings_pca.png}
+  \caption[Proyección PCA del espacio latente]{Proyección PCA del vector latente
+  de 96 dimensiones, coloreada por dataset y por etiqueta, con la varianza
+  explicada por componente. Versión lineal de la proyección t-SNE del cuerpo.}
+  \label{fig:apx_pca}
+\end{figure}
+
+\section{Mapas de atención (Grad-CAM)}
+
+Las figuras siguientes muestran una selección representativa de mapas Grad-CAM,
+con un panel de un caso con tumor y otro de un caso sano por régimen. Este
+análisis es \textbf{exploratorio y no concluyente}: la atención tiende a
+concentrarse en bordes y periferia, y \textbf{no sustenta ninguna afirmación
+sobre la capacidad de detección} del modelo.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.48\textwidth]{figuras/anexo/gradcam/confound/upenn_UPENN-GBM-00046.png}
+  \hfill
+  \includegraphics[width=0.48\textwidth]{figuras/anexo/gradcam/confound/ixi_IXI282-HH-2025.png}
+  \caption[Grad-CAM, régimen confundido]{Grad-CAM en el régimen confundido (caso
+  con tumor, izquierda; caso sano, derecha). \emph{Exploratorio y no concluyente}:
+  la atención se concentra en bordes/periferia.}
+  \label{fig:apx_gradcam_conf}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.48\textwidth]{figuras/anexo/gradcam/lodo_A/upenn_UPENN-GBM-00046.png}
+  \hfill
+  \includegraphics[width=0.48\textwidth]{figuras/anexo/gradcam/lodo_A/nki_rockland_NKI-A00061656-BAS2.png}
+  \caption[Grad-CAM, régimen LODO A]{Grad-CAM en el régimen LODO A (caso con
+  tumor, izquierda; caso sano, derecha). \emph{Exploratorio y no concluyente}.}
+  \label{fig:apx_gradcam_a}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.48\textwidth]{figuras/anexo/gradcam/lodo_B/brats_BraTS2021_00087.png}
+  \hfill
+  \includegraphics[width=0.48\textwidth]{figuras/anexo/gradcam/lodo_B/ixi_IXI211-HH-1568.png}
+  \caption[Grad-CAM, régimen LODO B]{Grad-CAM en el régimen LODO B (caso con
+  tumor, izquierda; caso sano, derecha). \emph{Exploratorio y no concluyente}.}
+  \label{fig:apx_gradcam_b}
+\end{figure}
 
 \chapter{Reproducibilidad: comandos, seeds y entorno}
-% TODO
+
+\section{Comandos por etapa}
+
+La cadena reproducible del proyecto se ejecuta con los siguientes comandos
+(nombres reales de los scripts de \texttt{src/}):
+
+\begin{verbatim}
+# Partición y entrenamiento de la CNN (pool)
+python -m src.training.train_3d
+# Evaluación sobre el test reservado
+python -m src.evaluation.evaluate_3d --checkpoint <run>/best.pt
+# Auditoría de la partición (solapamiento de sujetos)
+python -m src.data.audit_splits
+# Baseline trivial de intensidad + clf de origen + duplicados
+python -m src.audit.audit_leakage
+# Validación cruzada por dominio (LODO)
+python -m src.audit.make_lodo_splits --config A   # (y B, C, D)
+python -m src.audit.audit_lodo
+# Validación intra-dominio BTC
+python -m src.audit.btc_tiny_baseline
+python -m src.audit.btc_cnn_kfold
+# Espacio latente
+python -m src.audit.embeddings_tsne
+python -m src.audit.embeddings_intraclass
+# Consolidación de todos los resultados
+python -m src.audit.consolidate_results
+\end{verbatim}
+
+\section{Semillas y bootstrap}
+
+La reproducibilidad se sostiene en semillas fijas. La partición y el entrenamiento
+usan \texttt{seed = 42}. Los \emph{bootstrap} y las proyecciones de los baselines
+triviales y de los embeddings usan \texttt{seed = 0}. La única excepción es el
+intervalo de confianza al 95\,\% de la CNN intra-dominio BTC, cuyo \emph{bootstrap}
+reutiliza la semilla de la partición ($42$). En todos los casos, el \emph{bootstrap}
+emplea 2000 remuestreos.
+
+\section{Entorno de cómputo}
+
+El entrenamiento se ejecutó sobre GPU AMD mediante la pila ROCm. Las versiones
+principales del entorno, fijadas en \texttt{requirements.txt}, son:
+
+\begin{table}[ht]
+  \centering
+  \caption[Entorno de cómputo]{Versiones principales del entorno
+  (\texttt{requirements.txt}).}
+  \label{tab:apx_env}
+  \begin{tabular}{l l}
+    \hline
+    \textbf{Componente} & \textbf{Versión} \\
+    \hline
+    PyTorch       & 2.5.1 (ROCm 6.2) \\
+    MONAI         & 1.5.0 \\
+    HD-BET        & 2.0.1 \\
+    NumPy         & 2.1.3 \\
+    nibabel       & 5.4.2 \\
+    scikit-learn  & 1.6.1 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\section{Estructura del repositorio}
+
+El material versionado se organiza en \texttt{src/} (código: datos, modelo,
+entrenamiento, evaluación, preprocesado y auditoría), \texttt{configs/}
+(configuraciones de entrenamiento), \texttt{docs/audit/} (resultados en formato
+JSON y figuras, fuente de las cifras de esta memoria) y \texttt{memoria\_tfg/}
+(la propia memoria en \LaTeX). Los datos crudos y procesados, los checkpoints y
+las salidas de cómputo no se versionan por su tamaño.

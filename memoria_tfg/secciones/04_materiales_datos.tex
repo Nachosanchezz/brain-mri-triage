@@ -1,17 +1,213 @@
 \chapter{Materiales y datos}
-% TODO: redactar capítulo de materiales y datos
+
+Este capítulo describe las fuentes de imagen empleadas, la definición de la
+tarea de clasificación, la composición del conjunto resultante y el
+preprocesado común aplicado antes del modelado. La caracterización de los
+datos es central en este trabajo: como se mostrará, una propiedad de la propia
+composición del conjunto ---la coincidencia entre la clase clínica y el dataset
+de procedencia--- condiciona por completo la interpretación de los resultados
+posteriores.
 
 \section{Datasets: BraTS, UPENN-GBM, IXI, NKI Rockland y BTC\_preop}
-% TODO
+
+El trabajo se apoya exclusivamente en datos públicos de resonancia magnética
+(RM) cerebral. Para construir el conjunto de entrenamiento y evaluación
+principal ---en adelante, el \emph{pool multi-fuente}--- se combinaron cuatro
+cohortes: dos aportan estudios con tumor (clase positiva) y dos aportan
+estudios de sujetos sin lesión tumoral (clase negativa). De forma separada se
+incorporó una quinta cohorte, BTC\_preop, reservada para una evaluación
+intra-dominio que se detalla en capítulos posteriores.
+
+\begin{itemize}
+  \item \textbf{BraTS 2021} (\emph{Brain Tumor Segmentation Challenge}). Cohorte
+  multicéntrica de gliomas con segmentación experta, distribuida a través de
+  The Cancer Imaging Archive (TCIA) en el marco del reto
+  RSNA--ASNR--MICCAI~\cite{baid2021brats,menze2015brats,bakas2017advancing,clark2013tcia}.
+  Aporta estudios de la clase tumor.
+
+  \item \textbf{UPENN-GBM}. Cohorte de glioblastoma de la Universidad de
+  Pensilvania, con RM avanzada y datos clínicos, genómicos y
+  radiómicos~\cite{bakas2022upenngbm}. Aporta estudios de la clase tumor.
+
+  \item \textbf{IXI} (\emph{Information eXtraction from Images}). Conjunto de RM
+  cerebral de sujetos sanos recopilado por el Biomedical Image Analysis Group
+  del Imperial College London~\cite{ixi_dataset}. Aporta estudios de la clase
+  no-tumor.
+
+  \item \textbf{NKI Rockland}. Muestra de neuroimagen de la iniciativa
+  Nathan Kline Institute--Rockland, orientada a acelerar la ciencia del
+  descubrimiento en psiquiatría~\cite{nooner2012nki}. Aporta estudios de la
+  clase no-tumor.
+
+  \item \textbf{BTC\_preop} (OpenNeuro \texttt{ds001226}). Cohorte preoperatoria
+  de tumor cerebral adquirida en un \emph{único} centro (Ghent University
+  Hospital), distribuida bajo licencia CC0~\cite{aerts2022btcpreop}. A
+  diferencia del pool, contiene ambas clases ---pacientes con tumor y
+  controles--- adquiridas en el mismo escáner, por lo que se emplea como cohorte
+  intra-dominio. Solo dispone de la modalidad T1 estructural, lo que condiciona
+  el diseño del experimento correspondiente (véase la Sección~\ref{sec:modalidades}).
+\end{itemize}
+
+La Tabla~\ref{tab:composicion} resume la composición numérica de cada fuente
+tras el preprocesado. El pool multi-fuente reúne \textbf{2267} estudios; la
+cohorte BTC\_preop se mantiene aparte con \textbf{36} sujetos (\textbf{25} con
+tumor y \textbf{11} controles), composición verificada en los resultados de la
+auditoría intra-dominio. De los 25 estudios con tumor, según los metadatos del
+depósito \texttt{ds001226}, 11 corresponden a gliomas y 14 a
+meningiomas~\cite{aerts2022btcpreop}.
 
 \section{Definición de clases y etiquetado}
-% TODO
+
+La tarea se formula como una \textbf{clasificación binaria a nivel de estudio}:
+a cada volumen de RM se le asigna una etiqueta $y \in \{0, 1\}$, donde $y=1$
+indica presencia de masa tumoral (clase \emph{tumor}) e $y=0$ indica ausencia
+de tumor (clase \emph{no-tumor} o sano). No se aborda segmentación ni
+localización de la lesión, sino la priorización de estudios con sospecha de
+masa, coherente con un escenario de triaje.
+
+El etiquetado se deriva directamente de la procedencia de cada cohorte: BraTS
+2021 y UPENN-GBM son colecciones de pacientes oncológicos y se etiquetan en su
+totalidad como clase tumor ($y=1$); IXI y NKI Rockland son cohortes de sujetos
+sin tumor y se etiquetan como clase no-tumor ($y=0$). En consecuencia,
+\emph{cada dataset aporta una única clase}: ninguno contiene simultáneamente
+estudios positivos y negativos. El pool multi-fuente resultante contiene
+\textbf{1167} estudios positivos y \textbf{1100} negativos (Tabla~\ref{tab:composicion}).
+
+\begin{table}[ht]
+  \centering
+  \caption[Composición del conjunto de datos]{Composición del conjunto de datos tras el preprocesado. El pool
+  multi-fuente agrupa las cuatro primeras cohortes; BTC\_preop se reserva como
+  cohorte intra-dominio. Las cifras del pool proceden del resumen de
+  preprocesado y la composición de BTC\_preop (36 = 25 tumor / 11 control) de
+  los resultados de la auditoría intra-dominio; ambas fuentes son JSON
+  versionados.}
+  \label{tab:composicion}
+  \begin{tabular}{l l c}
+    \hline
+    \textbf{Dataset} & \textbf{Clase} & \textbf{Estudios ($n$)} \\
+    \hline
+    BraTS 2021    & Tumor ($y=1$)    & 580 \\
+    UPENN-GBM     & Tumor ($y=1$)    & 587 \\
+    IXI           & No-tumor ($y=0$) & 577 \\
+    NKI Rockland  & No-tumor ($y=0$) & 523 \\
+    \hline
+    \textbf{Pool multi-fuente} & Tumor + No-tumor & \textbf{2267} (1167 / 1100) \\
+    \hline
+    BTC\_preop (\texttt{ds001226}) & Tumor + Control & 36 (25 / 11) \\
+    \hline
+  \end{tabular}
+\end{table}
 
 \section{Composición del problema: relación entre clase y dataset de origen}
-% TODO
+\label{sec:confound}
+
+La consecuencia directa del esquema de etiquetado anterior es una propiedad
+estructural del conjunto que resulta determinante para todo el análisis: la
+clase clínica coincide de forma perfecta con el dataset de procedencia. En
+términos de conjuntos,
+\[
+  y = 1 \iff \text{dataset} \in \{\text{BraTS},\ \text{UPENN}\},
+  \qquad
+  y = 0 \iff \text{dataset} \in \{\text{IXI},\ \text{NKI}\}.
+\]
+La auditoría de las etiquetas confirma esta correspondencia: cada cohorte
+presenta un único valor de etiqueta (BraTS y UPENN únicamente $y=1$; IXI y NKI
+únicamente $y=0$). Dicho de otro modo, conocer la fuente de un estudio
+determina su clase con certeza, y viceversa.
+
+Esta coincidencia constituye un \emph{confound} dominio$\leftrightarrow$clase: la variable de
+interés (presencia de tumor) está completamente confundida con una variable de
+molestia (la procedencia del estudio, ligada al equipo de adquisición y al
+protocolo de preprocesado de cada cohorte). En presencia de un confound de esta
+magnitud, cualquier característica que distinga las cohortes de origen ---por
+ejemplo, diferencias sistemáticas de intensidad introducidas por el escáner o
+el pipeline--- es suficiente para predecir la etiqueta sin necesidad de
+información clínica. Este es precisamente el mecanismo del \emph{shortcut
+learning}, por el cual un modelo aprende un atajo espurio en lugar de la señal
+relevante~\cite{geirhos2020shortcut}, y es bien conocido que los efectos de
+escáner en datos multicéntricos generan este tipo de
+atajos~\cite{glocker2019scanner,castro2020causality}.
+
+Es importante subrayar que el confound es una propiedad de la \emph{composición
+de los datos}, no un resultado del modelo: existe con independencia de qué
+clasificador se entrene. Por esta misma razón, ningún esquema de partición de
+los datos del pool puede eliminarlo, y la única vía para evaluar la detección de
+tumor sin esta contaminación es disponer de ambas clases adquiridas en el mismo
+dominio. Esa es la motivación de incorporar la cohorte intra-dominio BTC\_preop,
+cuyo diseño y resultados se desarrollan en los capítulos de diseño experimental
+y resultados.
 
 \section{Selección de modalidades T1/T2}
-% TODO
+\label{sec:modalidades}
+
+De entre las modalidades estructurales disponibles se seleccionaron las
+ponderaciones \textbf{T1} y \textbf{T2}, presentes en las cuatro cohortes del
+pool y habituales en la valoración por imagen de tumores cerebrales, donde
+aportan información complementaria sobre la masa y el edema
+peritumoral~\cite{villanuevameyer2017imaging,martucci2023mri}. El pool
+multi-fuente se procesa, por tanto, como entrada de \textbf{dos canales}
+(T1 + T2).
+
+La cohorte intra-dominio BTC\_preop constituye la excepción: el depósito
+\texttt{ds001226} no incluye T2 estructural, por lo que el experimento
+intra-dominio se realiza necesariamente en modalidad \textbf{T1 únicamente}
+(un solo canal)~\cite{aerts2022btcpreop}. Salvo por el número de canales de
+entrada, el resto del procesamiento es idéntico al del pool, de manera que la
+comparación entre regímenes se mantiene lo más homogénea posible. La pérdida de
+información que supone prescindir de T2 en ese experimento se discute como
+limitación en el capítulo correspondiente.
 
 \section{Análisis exploratorio de los datos}
-% TODO
+
+\subsection{Preprocesado común}
+
+Todas las cohortes se sometieron a un mismo pipeline de preprocesado, de modo
+que las diferencias residuales entre datasets no se debieran a tratamientos
+distintos. La secuencia, idéntica para el pool y para BTC\_preop, es:
+
+\begin{enumerate}
+  \item \textbf{Extracción cerebral} (\emph{skull-stripping}) con HD-BET, una
+  herramienta de eliminación automática de cráneo basada en redes
+  neuronales~\cite{isensee2019hdbet}.
+  \item \textbf{Reorientación} a la convención de ejes RAS.
+  \item \textbf{Remuestreo} a una resolución isótropa de \textbf{1\,mm\textsuperscript{3}}.
+  \item \textbf{Recorte/relleno} (\emph{crop/pad}) a un volumen común de
+  \textbf{192\,$\times$\,224\,$\times$\,192} vóxeles.
+  \item \textbf{Normalización} de intensidad mediante \emph{z-score} (media 0,
+  desviación típica 1) calculado sobre el tejido cerebral, segmentado con un
+  umbral de Otsu.
+\end{enumerate}
+
+La resolución y la geometría de salida (1\,mm\textsuperscript{3} e
+192\,$\times$\,224\,$\times$\,192 vóxeles) se fijan en el resumen de
+preprocesado y son comunes a todas las cohortes, lo que garantiza que los
+volúmenes son directamente comparables y apilables como tensores de entrada.
+
+\subsection{Distribución de intensidades por dataset}
+
+El análisis exploratorio se centró en comprobar si las cohortes son distinguibles
+a partir de descriptores triviales de intensidad, anteriores a cualquier
+modelado. La Figura~\ref{fig:intensity} muestra la distribución de varios
+estadísticos de intensidad (fracción de vóxeles no nulos tras el
+\emph{skull-stripping}, media y percentiles) agrupados por dataset de origen.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figuras/intensity_by_dataset.png}
+  \caption[Distribuciones de intensidad por dataset]{Distribuciones de estadísticos de intensidad por dataset de origen.
+  Las cuatro cohortes del pool son separables ya a partir de descriptores
+  triviales (fracción de vóxeles no nulos, media y percentiles de intensidad),
+  lo que indica que la firma de procedencia está presente en los píxeles crudos,
+  antes de entrar al modelo.}
+  \label{fig:intensity}
+\end{figure}
+
+Las distribuciones son visiblemente separables por cohorte: incluso descriptores
+tan simples como la fracción de vóxeles no nulos ---una huella directa del
+\emph{skull-stripping}--- o los percentiles de intensidad difieren de forma
+sistemática entre datasets. Dado que, por construcción, la procedencia coincide
+con la clase (Sección~\ref{sec:confound}), esta separabilidad en los datos
+crudos implica que la etiqueta es predecible a partir de la intensidad, sin
+recurrir a información anatómica ni a modelo alguno. Esta observación
+exploratoria anticipa y explica los resultados del capítulo de resultados, donde
+se cuantifica formalmente la magnitud del confound.

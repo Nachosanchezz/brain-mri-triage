@@ -1,20 +1,338 @@
 \chapter{Estado del arte}
-% TODO: redactar capítulo de estado del arte
+
+La aplicación de la inteligencia artificial a la resonancia magnética (RM)
+cerebral en neurooncología ha experimentado un crecimiento notable, impulsada por
+la disponibilidad de \emph{datasets} públicos, el avance de las arquitecturas de
+aprendizaje profundo y la necesidad de herramientas de apoyo clínico útiles y
+realistas. Buena parte de la literatura se ha centrado, sin embargo, en tareas
+muy específicas ---segmentación exhaustiva del tumor, clasificación histológica o
+predicción de biomarcadores moleculares--- que, pese a su valor científico, no
+siempre se traducen de forma directa en aplicaciones integrables en el flujo
+asistencial cotidiano. La priorización automática de estudios con sospecha de
+masa tumoral, en cambio, constituye una tarea de interés asistencial directo y
+metodológicamente más acotada.
+
+Esta revisión se articula en torno a seis ejes: el contexto clínico y el
+diagnóstico por imagen de las masas tumorales intracraneales; el papel de la RM y
+las limitaciones del diagnóstico radiológico; el aprendizaje profundo en imagen
+médica como sistema de apoyo; sus enfoques, datasets y retos de generalización en
+RM cerebral; el sesgo de dominio y el aprendizaje por atajos como amenaza a la
+validez; y, por último, los sistemas de priorización en radiología. El recorrido
+converge en una observación que vertebra el resto de la memoria: cuando se
+construyen sistemas a partir de datos públicos heterogéneos, la \emph{evaluación
+rigurosa del sesgo de dominio} deja de ser un detalle metodológico para
+convertirse en el problema central, y es ahí donde se sitúa la contribución de
+este trabajo.
 
 \section{Diagnóstico por imagen de masas tumorales intracraneales}
-% TODO
+
+\subsection{Relevancia clínica de las masas tumorales intracraneales}
+
+Las masas tumorales intracraneales constituyen un grupo de lesiones de elevada
+relevancia clínica y epidemiológica por su impacto neurológico, diagnóstico y
+terapéutico~\cite{ostrom2023cbtrus,mcneill2016epidemiology}. Pueden diferir de
+manera significativa en su origen, comportamiento biológico, velocidad de
+crecimiento, capacidad infiltrativa y pronóstico, diferencias que se recogen en
+los sistemas de clasificación histológica y molecular de referencia~\cite{louis2021who,who2007cns,kleihues2000who}.
+Algunas presentan una evolución relativamente lenta, mientras que otras ---de
+forma señalada los gliomas de alto grado--- muestran un comportamiento agresivo,
+progresivo e infiltrativo~\cite{wen2008gliomas}. En todos los casos, su
+localización dentro del cráneo confiere especial relevancia a su detección, ya
+que incluso lesiones histológicamente poco agresivas pueden producir síntomas por
+efecto masa, edema o compresión de estructuras críticas~\cite{contreras2017epidemiologia,perezsegura2025tumores}.
+
+En la práctica clínica, el hallazgo de una masa intracraneal suele desencadenar
+una cadena de decisiones de gran importancia: estudios complementarios,
+valoración por neurocirugía, discusión multidisciplinar y eventual inicio de
+tratamiento. Por ello, la identificación temprana de estudios con sospecha de
+lesión ocupante de espacio puede tener repercusiones directas sobre los tiempos
+de respuesta y la organización del circuito asistencial. A los efectos de este
+trabajo no es necesario profundizar en una clasificación exhaustiva de subtipos
+ni en su estratificación molecular: lo esencial es reconocer que estas masas
+constituyen un grupo clínicamente prioritario cuya sospecha en una RM puede
+justificar una revisión más temprana, situando el problema en un plano operativo
+---priorizar, no sustituir el diagnóstico especializado.
+
+\subsection{Complejidad diagnóstica y necesidad de detección precoz}
+
+El diagnóstico de una masa intracraneal representa un reto importante por la
+heterogeneidad de presentación de estas lesiones y por la complejidad de su
+caracterización mediante imagen. La sintomatología es variable e inespecífica
+---cefalea, focalidad neurológica, crisis epilépticas, alteraciones cognitivas o
+hallazgos incidentales---, lo que confiere a la RM cerebral un papel central en
+la detección inicial y en la evaluación posterior~\cite{cha2009neuroimaging}.
+
+La necesidad de detección precoz no debe entenderse aquí como cribado
+poblacional, sino en el marco de estudios ya indicados clínicamente: el problema
+no es decidir si una RM debe realizarse, sino gestionar de forma eficiente el
+orden en que los estudios obtenidos son revisados. Cuando una exploración
+contiene una masa tumoral, su identificación rápida puede condicionar el
+itinerario del paciente y acelerar decisiones de alto impacto. De ahí el interés,
+desde una perspectiva organizativa, por sistemas capaces de señalar
+automáticamente los estudios con mayor probabilidad de contener una lesión
+ocupante de espacio. Este planteamiento es especialmente pertinente en contextos
+de elevada carga asistencial ---guardias, turnos nocturnos, servicios con alta
+demanda---, y presenta una ventaja conceptual: permite formular una tarea
+clínicamente significativa sin exigir que el modelo emita un diagnóstico completo,
+acotando la pregunta a si un estudio merece revisión prioritaria por su posible
+contenido tumoral.
 
 \section{RM cerebral y limitaciones del diagnóstico radiológico}
-% TODO
+
+\subsection{Papel de la resonancia magnética en neurooncología}
+
+La RM cerebral se ha consolidado como técnica de imagen de referencia en
+neurooncología por su elevada resolución espacial y su capacidad para diferenciar
+los tejidos blandos del sistema nervioso central~\cite{villanuevameyer2017imaging}.
+A diferencia de otras modalidades, permite una evaluación detallada de la anatomía
+cerebral y de las alteraciones asociadas a una masa ---edema, necrosis, efecto
+masa o alteración de la barrera hematoencefálica--- y se emplea tanto en la
+detección inicial como en la estimación de la extensión, la planificación
+terapéutica y el seguimiento~\cite{martucci2023mri}. Las distintas secuencias
+aportan información complementaria; las secuencias estructurales convencionales
+ocupan un lugar central por su disponibilidad y relevancia diagnóstica, y la
+caracterización multiparamétrica resulta especialmente útil en determinadas
+lesiones~\cite{laukamp2021meningioma}.
+
+Desde el punto de vista del aprendizaje automático, la RM ofrece una fuente de
+información rica pero introduce retos metodológicos. En la literatura basada en
+datasets públicos es habitual restringir las modalidades a las comunes entre
+cohortes para favorecer la comparabilidad: aunque clínicamente sería deseable
+trabajar con protocolos multiparamétricos completos, la disponibilidad desigual
+de secuencias como T1 con contraste o FLAIR entre cohortes puede introducir
+sesgos si su presencia queda asociada a una clase o a un origen concreto. Por
+ello, en términos generales, la elección de las modalidades de entrada no es una
+cuestión meramente técnica sino una decisión metodológica con impacto sobre la
+validez del experimento, y restringirse a modalidades estructurales comunes como
+T1 y T2 suele interpretarse como una estrategia conservadora pero sólida, que
+sacrifica riqueza clínica a cambio de una comparación más limpia entre dominios.
+
+\subsection{Información visual relevante y dificultad de interpretación}
+
+La RM cerebral contiene abundante información visual útil para sospechar una masa
+intracraneal: lesión ocupante de espacio, alteración de la arquitectura
+anatómica, edema perilesional, heterogeneidad de señal, necrosis, efecto masa y
+desplazamiento de estructuras adyacentes. Su integración permite al radiólogo
+formular una impresión diagnóstica inicial. No obstante, la interpretación de
+estos patrones no es trivial: algunas lesiones tumorales comparten características
+radiológicas con entidades no neoplásicas ---procesos inflamatorios, infecciosos
+o cambios postratamiento--- y lesiones de distinta biología pueden mostrar
+hallazgos parcialmente solapados, lo que limita la especificidad de la
+técnica~\cite{villanuevameyer2017imaging}.
+
+Esta dificultad interpretativa refuerza la pertinencia de un enfoque de
+priorización frente a uno de diagnóstico exhaustivo: la RM, aun sin resolver por
+sí sola todo el diagnóstico diferencial, contiene información suficiente para
+sospechar que ciertos estudios merecen revisión temprana. Esta observación es
+relevante al plantear tareas binarias de clasificación a nivel de estudio,
+centradas en la presencia o ausencia de masa, que pueden apoyarse en la estructura
+visual global de la exploración sin exigir anotaciones a nivel de vóxel.
+
+\subsection{Limitaciones del diagnóstico radiológico y papel del radiólogo}
+
+Pese a su valor, la interpretación radiológica presenta limitaciones. La falta de
+especificidad de muchos hallazgos hace que distintas entidades compartan patrones
+visuales, y la naturaleza infiltrativa de muchos tumores ---en especial los
+gliomas de alto grado--- dificulta delimitar sus márgenes y puede llevar a
+infraestimar la extensión real en la imagen convencional~\cite{wen2008gliomas}. A
+ello se añade el componente de subjetividad: la experiencia del radiólogo influye
+en la lectura y la variabilidad interobservador puede afectar a la consistencia
+de los informes, especialmente en estudios complejos. El incremento sostenido del
+volumen de exploraciones agrava esta carga.
+
+En este contexto, el radiólogo sigue siendo el profesional central e
+insustituible. Por ello, las herramientas de inteligencia artificial de mayor
+interés clínico no son las que aspiran a reemplazar su juicio, sino las que lo
+apoyan de forma concreta; entre ellas, la priorización automática de estudios
+sospechosos destaca como estrategia para redistribuir la carga asistencial y
+mejorar los tiempos de respuesta.
 
 \section{Deep Learning en imagen médica}
-% TODO
+
+\subsection{Fundamentos y aplicaciones generales}
+
+La inteligencia artificial es una de las áreas de mayor crecimiento en imagen
+médica de la última década, favorecida por la digitalización masiva de los
+estudios, el aumento de la capacidad computacional y la disponibilidad de
+algoritmos capaces de aprender patrones complejos a partir de grandes volúmenes
+de datos~\cite{litjens2017survey,avanzo2024evolution}. En este marco, las redes
+neuronales convolucionales se han consolidado como una de las arquitecturas más
+relevantes para el análisis de imagen, por su capacidad de extraer
+automáticamente características espaciales discriminativas, con utilidad
+demostrada en detección de lesiones, clasificación de estudios, segmentación de
+estructuras y predicción de resultados clínicos~\cite{litjens2017survey,langs2023ai}.
+
+El interés de estas técnicas no reside únicamente en su capacidad técnica: su
+valor asistencial depende de que resuelvan problemas concretos, clínicamente
+relevantes y bien planteados~\cite{driver2019radiology}. De ahí el interés
+creciente por aplicaciones integrables de forma realista en el flujo de trabajo
+hospitalario, más allá de tareas altamente sofisticadas.
+
+\subsection{Sistemas de apoyo al diagnóstico}
+
+El impacto clínico de la inteligencia artificial en radiología depende de su
+integración como sistema de apoyo, complementario al radiólogo y no sustitutivo.
+Su potencial radica en mejorar la eficiencia, la consistencia y la calidad del
+proceso diagnóstico~\cite{sharma2020diagnostic}. Estos sistemas adoptan formas
+diversas ---detección asistida por ordenador, clasificadores probabilísticos o
+mecanismos de priorización---, con evidencia de adopción en distintos dominios de
+la radiología, como la imagen de mama o el diagnóstico de
+fracturas~\cite{hickman2021breast,zech2022fracture,yeasmin2024advances}; en
+neurorradiología, las aproximaciones radiómicas y de aprendizaje profundo se han
+incorporado igualmente al análisis de imagen~\cite{wagner2021radiomics}. La
+priorización automática, que se desarrolla en la Sección~\ref{sec:triaje},
+constituye una de estas formas de apoyo, especialmente atractiva en entornos de
+alta carga asistencial.
 
 \section{Deep Learning aplicado a RM cerebral: enfoques, datasets y retos de generalización}
-% TODO
+
+\subsection{Principales enfoques: segmentación, clasificación y tareas relacionadas}
+
+La literatura sobre aprendizaje profundo en RM cerebral de tumores ha explorado
+múltiples tareas. La más desarrollada es la segmentación automática del tumor,
+impulsada de forma decisiva por competiciones internacionales y por la
+disponibilidad de anotaciones manuales detalladas~\cite{labella2023brats}, que ha
+permitido desarrollar arquitecturas 3D capaces de delimitar regiones tumorales
+con elevada precisión~\cite{kamnitsas2017deepmedic}. Junto a ella se han
+desarrollado tareas de clasificación ---detección de presencia tumoral,
+diferenciación de grados o subtipos--- y enfoques de predicción de biomarcadores,
+pronóstico o respuesta al tratamiento~\cite{litjens2017survey}.
+
+No todas estas tareas tienen la misma proximidad al flujo asistencial. Mientras
+que la segmentación exhaustiva o la predicción molecular exigen niveles elevados
+de anotación, validación e integración, las tareas binarias a nivel de estudio
+---orientadas a detectar presencia tumoral o a priorizar estudios sospechosos---
+pueden constituir un punto de partida más viable, en especial cuando se trabaja
+con datasets públicos heterogéneos y recursos computacionales razonables.
+
+\subsection{Datasets públicos y retos de generalización}
+
+El desarrollo de modelos en tumores cerebrales ha dependido estrechamente de
+datasets públicos estandarizados, que se han consolidado como referencia del
+campo. Esta dependencia ha puesto de manifiesto, sin embargo, una limitación
+importante: el rendimiento alcanzado en bases de datos controladas no siempre se
+traslada a entornos clínicos reales. Las diferencias en protocolos de
+adquisición, resolución espacial, intensidad de campo, preprocesado y
+características demográficas introducen variabilidad suficiente como para
+comprometer la robustez de los modelos. Por ello, la validación externa y la
+evaluación \emph{cross-dataset} adquieren un papel central: no basta con obtener
+buenos resultados dentro del dominio de entrenamiento, sino que es necesario
+estudiar en qué medida el modelo mantiene capacidad discriminativa al aplicarse a
+datos de otra procedencia; desde una perspectiva traslacional, la robustez entre
+dominios es una condición indispensable para considerar útil cualquier sistema de
+apoyo.
+
+Esta cuestión convierte el problema en un objeto de análisis metodológicamente
+rico. La utilidad de un modelo no depende solo de su discriminación global, sino
+también del compromiso entre sensibilidad y especificidad, del efecto de los
+umbrales de decisión, de la estabilidad del rendimiento entre dominios y de la
+calibración de las probabilidades emitidas. Desde una perspectiva de ingeniería
+matemática, este conjunto de preguntas hace de la evaluación cuidadosa del modelo
+una parte esencial de la aportación, y no un mero apéndice de la implementación.
+Ahora bien, cuando la clase positiva y la negativa proceden de datasets distintos,
+la generalización deja de ser solo un reto de robustez y se convierte en una
+amenaza directa a la validez, que se aborda en la sección siguiente.
 
 \section{Sesgo de dominio, shortcut learning y fugas de información en Deep Learning médico}
-% TODO
+
+\subsection{Aprendizaje por atajos y correlaciones espurias}
+
+Un fenómeno transversal al aprendizaje profundo es el aprendizaje por atajos
+(\emph{shortcut learning}): la tendencia de las redes a resolver una tarea
+mediante reglas que funcionan en los datos de entrenamiento pero no se
+corresponden con la solución pretendida ni generalizan a condiciones
+nuevas~\cite{geirhos2020shortcut}. En imagen médica, este fenómeno se manifiesta
+con frecuencia como una correlación espuria entre la etiqueta y la procedencia de
+los datos. Dos casos se han convertido en referentes: modelos que aparentaban
+detectar neumonía en radiografía de tórax y que, en realidad, explotaban
+marcadores asociados al hospital o al equipo de adquisición~\cite{zech2018pneumonia},
+y modelos de detección de COVID-19 que seleccionaban atajos en lugar de
+señal patológica genuina~\cite{degrave2021shortcuts}. En ambos, un rendimiento
+interno excelente ocultaba una dependencia de variables ajenas a la enfermedad.
+
+\subsection{Efectos de escáner y cambio de dominio}
+
+La raíz de muchas de estas correlaciones espurias está en los efectos de escáner
+y de centro: en datos multi-sitio existen diferencias sistemáticas y medibles
+---atribuibles al equipo, al protocolo o al preprocesado--- incluso entre sujetos
+comparables, que un modelo puede aprender como si fueran señal~\cite{glocker2019scanner}.
+El marco causal del cambio de dominio formaliza por qué estas dependencias se
+rompen ---o incluso se invierten--- al cambiar de población: cuando una variable
+de procedencia actúa como factor de confusión entre la imagen y la etiqueta, abre
+un camino predictivo espurio indistinguible del causal mientras no se intervenga
+sobre la composición de los datos~\cite{castro2020causality}. El riesgo es máximo
+cuando la etiqueta queda correlacionada con el dominio de origen, situación en la
+que el modelo puede aprender diferencias de escáner, protocolo, resolución o
+distribución de intensidades en lugar de rasgos asociados a la lesión.
+
+\subsection{Fugas de información y validez experimental}
+
+Además del sesgo de dominio, la literatura identifica otras fugas de información
+(\emph{leakage}) que inflan artificialmente las métricas y comprometen la validez.
+Dos son especialmente relevantes con datos heterogéneos: la fuga por partición,
+que se produce cuando muestras de un mismo sujeto aparecen simultáneamente en
+entrenamiento y test, y la presencia de duplicados exactos entre particiones.
+Como conceptos generales de buena práctica, su control ---particiones a nivel de
+sujeto y comprobación de duplicados--- forma parte del diseño experimental
+riguroso, y permite distinguir estas fugas de un confound de dominio propiamente
+dicho.
+
+Entre las medidas habituales para mitigar estos riesgos figuran el preprocesado
+homogéneo de todas las cohortes, la selección de modalidades comunes, la
+estandarización espacial e intensiva, los análisis desglosados por procedencia y
+la evaluación externa o \emph{cross-dataset}. Sin embargo, la literatura es menos
+explícita en \emph{cómo verificar sistemáticamente} si un rendimiento elevado
+refleja señal patológica o dependencia del dominio, sobre todo cuando la
+correlación entre clase y procedencia es muy alta. Este es precisamente el hueco
+que motiva el presente trabajo: la necesidad de un protocolo de auditoría que, de
+forma reproducible, ponga a prueba la validez del rendimiento aparente y aísle el
+sesgo de dominio de otras explicaciones. Su desarrollo y aplicación se abordan en
+los capítulos de diseño experimental y resultados.
 
 \section{Sistemas de priorización/triaje en radiología}
-% TODO
+\label{sec:triaje}
+
+La incorporación de la inteligencia artificial en radiología no es solo una
+innovación tecnológica, sino una posible respuesta a un problema organizativo
+real: el incremento del volumen de estudios y la creciente complejidad de su
+interpretación han aumentado la carga de trabajo del radiólogo. Cualquier
+herramienta capaz de redistribuir el tiempo de lectura de forma más eficiente
+puede tener un impacto relevante, y los sistemas de priorización (\emph{triage})
+se han propuesto específicamente para reordenar la lista de lectura señalando los
+estudios potencialmente urgentes~\cite{titano2018cranial}.
+
+En el caso de la RM cerebral, la revisión de estudios sospechosos requiere un
+análisis detallado y la integración de múltiples variables; la presión asistencial
+hace que la priorización automática resulte especialmente atractiva. Su objetivo
+no es reemplazar la lectura médica, sino señalar los casos que merecerían atención
+más temprana. Desde una perspectiva organizativa, una de sus ventajas es que
+puede aportar valor incluso sin alcanzar un rendimiento compatible con la
+automatización diagnóstica: un sistema suficientemente sensible es útil como
+mecanismo de alerta o de reorganización de la cola, siempre que sus limitaciones
+estén bien comprendidas y la decisión final siga recayendo en el especialista. La
+aceptación de estos sistemas, además, depende no solo de su rendimiento técnico,
+sino también de su transparencia y de la percepción de utilidad clínica~\cite{lambert2023acceptance,lee2022implementation}.
+
+Esta función específica tiene implicaciones sobre cómo evaluarlos. Frente a los
+sistemas de diagnóstico definitivo, que exigen niveles muy altos de especificidad
+y validación, los de priorización deben evaluarse en términos operativos:
+sensibilidad a umbrales altos, falsos positivos resultantes, fracción de la lista
+que podría reorganizarse y consistencia de las probabilidades con el riesgo
+real~\cite{sharma2020diagnostic}. Este desplazamiento, desde la precisión técnica
+aislada hacia la utilidad operativa, es clave para valorar de forma realista el
+interés de la propuesta.
+
+En síntesis, aunque el aprendizaje profundo aplicado a la RM cerebral ha avanzado
+notablemente en segmentación, clasificación y predicción molecular, persisten
+limitaciones de generalización, validación externa e integración asistencial. La
+priorización de estudios con sospecha de masa tumoral ---ya indicados
+clínicamente--- es una formulación coherente con las necesidades de la radiología
+y motiva el problema de partida de este trabajo. Ahora bien, la revisión
+precedente muestra que, al construir estos sistemas con datos públicos
+multi-fuente, el riesgo de que la clase quede confundida con la procedencia es
+estructural y puede invalidar cualquier métrica interna. Por ello, el núcleo de
+la contribución de esta memoria no es un clasificador de triaje desplegable, sino
+la \textbf{evaluación rigurosa del sesgo de dominio}: un protocolo de auditoría
+que determina si el rendimiento observado refleja detección de lesión o
+reconocimiento de la procedencia. Los capítulos siguientes desarrollan los
+materiales, la metodología y ese protocolo.

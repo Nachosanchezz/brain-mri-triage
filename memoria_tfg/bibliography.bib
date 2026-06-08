@@ -1,54 +1,578 @@
-% Borrar estas referencias de ejemplo
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliografía del TFG
+% Claves: apellido + año + palabra clave.  Cita con \cite{clave}
+% Campos (autores/año/DOI/páginas) verificados por web el 2026-06-06.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Libro
-@book{libro_autor_apellido,
-  author       = {Apellido, Autor},
-  title        = {Título del Libro},
-  year         = {Año},
-  publisher    = {Editorial},
-  location     = {Lugar de Publicación},
-  edition      = {Edición},
-  isbn         = {ISBN-13},
-  url          = {URL},
-  note         = {Notas adicionales}
+%====================================================================
+% NÚCLEO METODOLÓGICO: sesgo de dominio, shortcut learning, fugas (cap. 3.5, 8)
+%====================================================================
+
+@article{geirhos2020shortcut,
+  author       = {Geirhos, Robert and Jacobsen, J{\"o}rn-Henrik and Michaelis, Claudio and Zemel, Richard and Brendel, Wieland and Bethge, Matthias and Wichmann, Felix A.},
+  title        = {Shortcut learning in deep neural networks},
+  journaltitle = {Nature Machine Intelligence},
+  year         = {2020},
+  volume       = {2},
+  number       = {11},
+  pages        = {665--673},
+  doi          = {10.1038/s42256-020-00257-z}
 }
 
-% Artículo
-@article{articulo_autor_apellido,
-  author       = {Apellido, Autor},
-  title        = {Título del Artículo},
-  journaltitle = {Nombre de la Revista},
-  year         = {Año},
-  volume       = {Volumen},
-  number       = {Número},
-  pages        = {Páginas},
-  doi          = {DOI},
-  url          = {URL},
-  note         = {Notas adicionales}
+@article{zech2018pneumonia,
+  author       = {Zech, John R. and Badgeley, Marcus A. and Liu, Manway and Costa, Anthony B. and Titano, Joseph J. and Oermann, Eric Karl},
+  title        = {Variable generalization performance of a deep learning model to detect pneumonia in chest radiographs: A cross-sectional study},
+  journaltitle = {PLOS Medicine},
+  year         = {2018},
+  volume       = {15},
+  number       = {11},
+  pages        = {e1002683},
+  doi          = {10.1371/journal.pmed.1002683}
 }
 
-% Conferencia
-@inproceedings{conferencia_autor_apellido,
-  author       = {Apellido, Autor},
-  title        = {Título de la Conferencia},
-  booktitle    = {Nombre de las Actas de la Conferencia},
-  year         = {Año},
-  pages        = {Páginas},
-  organization = {Organización},
-  address      = {Ubicación},
-  month        = {Mes},
-  doi          = {DOI},
-  url          = {URL},
-  note         = {Notas adicionales}
+@article{degrave2021shortcuts,
+  author       = {DeGrave, Alex J. and Janizek, Joseph D. and Lee, Su-In},
+  title        = {{AI} for radiographic {COVID-19} detection selects shortcuts over signal},
+  journaltitle = {Nature Machine Intelligence},
+  year         = {2021},
+  volume       = {3},
+  number       = {7},
+  pages        = {610--619},
+  doi          = {10.1038/s42256-021-00338-7}
 }
 
-% Paper
-@thesis{paper_autor_apellido,
-  author       = {Apellido, Autor},
-  title        = {Título del Paper},
-  type         = {Tipo de Documento},
-  institution  = {Institución},
-  year         = {Año},
-  url          = {URL},
-  note         = {Notas adicionales}
+@misc{glocker2019scanner,
+  author       = {Glocker, Ben and Robinson, Robert and Castro, Daniel C. and Dou, Qi and Konukoglu, Ender},
+  title        = {Machine Learning with Multi-Site Imaging Data: An Empirical Study on the Impact of Scanner Effects},
+  year         = {2019},
+  eprint       = {1910.04597},
+  eprinttype   = {arxiv},
+  note         = {Medical Imaging meets NeurIPS Workshop},
+  url          = {https://arxiv.org/abs/1910.04597}
+}
+
+@article{castro2020causality,
+  author       = {Castro, Daniel C. and Walker, Ian and Glocker, Ben},
+  title        = {Causality matters in medical imaging},
+  journaltitle = {Nature Communications},
+  year         = {2020},
+  volume       = {11},
+  pages        = {3673},
+  doi          = {10.1038/s41467-020-17478-w}
+}
+
+%====================================================================
+% DEEP LEARNING EN IMAGEN MÉDICA y TRIAJE (cap. 3.3, 3.6)
+%====================================================================
+
+@article{litjens2017survey,
+  author       = {Litjens, Geert and Kooi, Thijs and Bejnordi, Babak Ehteshami and Setio, Arnaud Arindra Adiyoso and Ciompi, Francesco and Ghafoorian, Mohsen and van der Laak, Jeroen A. W. M. and van Ginneken, Bram and S{\'a}nchez, Clara I.},
+  title        = {A survey on deep learning in medical image analysis},
+  journaltitle = {Medical Image Analysis},
+  year         = {2017},
+  volume       = {42},
+  pages        = {60--88},
+  doi          = {10.1016/j.media.2017.07.005}
+}
+
+@article{titano2018cranial,
+  author       = {Titano, Joseph J. and Badgeley, Marcus and Schefflein, Javin and Pain, Margaret and Su, Andres and Cai, Michael and Swinburne, Nathaniel and Zech, John and Kim, Jun and Bederson, Joshua and others},
+  title        = {Automated deep-neural-network surveillance of cranial images for acute neurologic events},
+  journaltitle = {Nature Medicine},
+  year         = {2018},
+  volume       = {24},
+  number       = {9},
+  pages        = {1337--1341},
+  doi          = {10.1038/s41591-018-0147-y}
+}
+
+%====================================================================
+% DATASETS UTILIZADOS (cap. 4.1)
+%====================================================================
+
+@misc{baid2021brats,
+  author       = {Baid, Ujjwal and Ghodasara, Satyam and Mohan, Suyash and Bilello, Michel and Calabrese, Evan and Colak, Errol and Farahani, Keyvan and Kalpathy-Cramer, Jayashree and Kitamura, Felipe C. and Pati, Sarthak and others},
+  title        = {The {RSNA-ASNR-MICCAI} {BraTS} 2021 Benchmark on Brain Tumor Segmentation and Radiogenomic Classification},
+  year         = {2021},
+  eprint       = {2107.02314},
+  eprinttype   = {arxiv},
+  url          = {https://arxiv.org/abs/2107.02314}
+}
+
+@article{bakas2022upenngbm,
+  author       = {Bakas, Spyridon and Sako, Chiharu and Akbari, Hamed and Bilello, Michel and Sotiras, Aristeidis and Shukla, Gaurav and Rudie, Jeffrey D. and others},
+  title        = {The University of Pennsylvania glioblastoma ({UPenn-GBM}) cohort: advanced {MRI}, clinical, genomics, \& radiomics},
+  journaltitle = {Scientific Data},
+  year         = {2022},
+  volume       = {9},
+  pages        = {453},
+  doi          = {10.1038/s41597-022-01560-7}
+}
+
+@article{nooner2012nki,
+  author       = {Nooner, Kate B. and Colcombe, Stanley J. and Tobe, Russell H. and Mennes, Maarten and Benedict, Melissa M. and Moreno, Alexis L. and others},
+  title        = {The {NKI-Rockland} Sample: A Model for Accelerating the Pace of Discovery Science in Psychiatry},
+  journaltitle = {Frontiers in Neuroscience},
+  year         = {2012},
+  volume       = {6},
+  pages        = {152},
+  doi          = {10.3389/fnins.2012.00152}
+}
+
+@online{aerts2022btcpreop,
+  author       = {Aerts, Hannelore and Colenbier, Nigel and Almgren, Hannes and Marinazzo, Daniele},
+  title        = {{BTC\_preop}: Preoperative brain tumor multimodal {MRI} dataset (ds001226)},
+  year         = {2022},
+  organization = {OpenNeuro},
+  doi          = {10.18112/openneuro.ds001226.v5.0.0},
+  url          = {https://openneuro.org/datasets/ds001226},
+  note         = {Dataset CC0 (11 glioma + 14 meningioma + 11 controles). Descriptor: \enquote{Pre- and post-surgery brain tumor multimodal MRI data\ldots}, Scientific Data 9, 676 (2022), DOI 10.1038/s41597-022-01806-4}
+}
+
+@online{ixi_dataset,
+  author       = {{Biomedical Image Analysis Group, Imperial College London}},
+  title        = {{IXI} Dataset},
+  organization = {Brain Development},
+  url          = {https://brain-development.org/ixi-dataset/},
+  urldate      = {2026-06-06}
+}
+
+%====================================================================
+% PREPROCESADO (cap. 5.1)
+%====================================================================
+
+@article{isensee2019hdbet,
+  author       = {Isensee, Fabian and Schell, Marianne and Pflueger, Irada and Brugnara, Gianluca and Bonekamp, David and Neuberger, Ulf and Wick, Antje and Schlemmer, Heinz-Peter and Heiland, Sabine and Wick, Wolfgang and Bendszus, Martin and Maier-Hein, Klaus H. and Kickingereder, Philipp},
+  title        = {Automated brain extraction of multisequence {MRI} using artificial neural networks},
+  journaltitle = {Human Brain Mapping},
+  year         = {2019},
+  volume       = {40},
+  number       = {17},
+  pages        = {4952--4964},
+  doi          = {10.1002/hbm.24750}
+}
+
+%====================================================================
+% DL EN RM CEREBRAL / SEGMENTACIÓN (cap. 3.4, 5)
+%====================================================================
+
+@article{kamnitsas2017deepmedic,
+  author       = {Kamnitsas, Konstantinos and Ledig, Christian and Newcombe, Virginia F. J. and Simpson, Joanna P. and Kane, Andrew D. and Menon, David K. and Rueckert, Daniel and Glocker, Ben},
+  title        = {Efficient multi-scale {3D} {CNN} with fully connected {CRF} for accurate brain lesion segmentation},
+  journaltitle = {Medical Image Analysis},
+  year         = {2017},
+  volume       = {36},
+  pages        = {61--78},
+  doi          = {10.1016/j.media.2016.10.004}
+}
+
+@misc{labella2023brats,
+  author       = {LaBella, Dominic and Adewole, Maruf and Alonso-Basanta, Michelle and others},
+  title        = {The {ASNR-MICCAI} Brain Tumor Segmentation ({BraTS}) Challenge 2023: Intracranial Meningioma},
+  year         = {2023},
+  eprint       = {2305.07642},
+  eprinttype   = {arxiv},
+  url          = {https://arxiv.org/abs/2305.07642}
+}
+
+@article{laukamp2021meningioma,
+  author       = {Laukamp, Kai R. and Pennig, Lenhard and Thiele, Frank and Reimer, Robert and G{\"o}rtz, Lukas and Shakirin, Georgy and Zopfs, David and Timmer, Marco and Perkuhn, Michael and Borggrefe, Jan},
+  title        = {Automated meningioma segmentation in multiparametric {MRI}},
+  journaltitle = {Clinical Neuroradiology},
+  year         = {2021},
+  volume       = {31},
+  number       = {2},
+  pages        = {357--366},
+  doi          = {10.1007/s00062-020-00943-3}
+}
+
+%====================================================================
+% CLÍNICA, EPIDEMIOLOGÍA Y CLASIFICACIÓN WHO (cap. 3.1, 4)
+%====================================================================
+
+@online{perezsegura2025tumores,
+  author       = {P{\'e}rez Segura, Pedro},
+  title        = {Tumores cerebrales},
+  year         = {2025},
+  organization = {Sociedad Espa{\~n}ola de Oncolog{\'i}a M{\'e}dica (SEOM)},
+  url          = {https://seom.org/informacion-al-publico-patologias/tumores-cerebrales},
+  urldate      = {2026-06-06}
+}
+
+@article{contreras2017epidemiologia,
+  author       = {Contreras, Luis E.},
+  title        = {Epidemiolog{\'i}a de tumores cerebrales},
+  journaltitle = {Revista M{\'e}dica Cl{\'i}nica Las Condes},
+  year         = {2017},
+  volume       = {28},
+  number       = {3},
+  pages        = {332--338},
+  doi          = {10.1016/j.rmclc.2017.06.006}
+}
+
+@article{wen2008gliomas,
+  author       = {Wen, Patrick Y. and Kesari, Santosh},
+  title        = {Malignant gliomas in adults},
+  journaltitle = {New England Journal of Medicine},
+  year         = {2008},
+  volume       = {359},
+  number       = {5},
+  pages        = {492--507},
+  doi          = {10.1056/NEJMra0708126}
+}
+
+@book{who2007cns,
+  editor       = {Louis, David N. and Ohgaki, Hiroko and Wiestler, Otmar D. and Cavenee, Webster K.},
+  title        = {{WHO} Classification of Tumours of the Central Nervous System},
+  year         = {2007},
+  edition      = {4},
+  publisher    = {IARC Press},
+  location     = {Lyon},
+  note         = {Editores principales; serie OMS de clasificación de tumores}
+}
+
+@article{mcneill2016epidemiology,
+  author       = {McNeill, Katharine A.},
+  title        = {Epidemiology of brain tumors},
+  journaltitle = {Neurologic Clinics},
+  year         = {2016},
+  volume       = {34},
+  number       = {4},
+  pages        = {981--998},
+  doi          = {10.1016/j.ncl.2016.06.014}
+}
+
+@book{kleihues2000who,
+  author       = {Kleihues, Paul and Cavenee, Webster K.},
+  title        = {{WHO} Classification of Tumours: Pathology and Genetics of Tumours of the Nervous System},
+  year         = {2000},
+  publisher    = {IARC Press},
+  location     = {Lyon},
+  note         = {Clasificación histórica, superada por louis2021who}
+}
+
+@article{cha2009neuroimaging,
+  author       = {Cha, Soonmee},
+  title        = {Neuroimaging in neuro-oncology},
+  journaltitle = {Neurotherapeutics},
+  year         = {2009},
+  volume       = {6},
+  number       = {3},
+  pages        = {465--477},
+  doi          = {10.1016/j.nurt.2009.05.002}
+}
+
+@article{villanuevameyer2017imaging,
+  author       = {Villanueva-Meyer, Javier E. and Mabray, Marc C. and Cha, Soonmee},
+  title        = {Current clinical brain tumor imaging},
+  journaltitle = {Neurosurgery},
+  year         = {2017},
+  volume       = {81},
+  number       = {3},
+  pages        = {397--415},
+  doi          = {10.1093/neuros/nyx103}
+}
+
+@article{martucci2023mri,
+  author       = {Martucci, Matia and Russo, Rosellina and Schimperna, Francesco and D'Apolito, Gabriella and Panfili, Marco and Grimaldi, Alessandro and Perna, Alessandro and Ferranti, Augusto Maria and Varcasia, Giuseppe and Giordano, Carolina and Gaudino, Simona},
+  title        = {Magnetic resonance imaging of primary adult brain tumors: state of the art and future perspectives},
+  journaltitle = {Cancers},
+  year         = {2023},
+  volume       = {15},
+  number       = {3},
+  pages        = {628},
+  doi          = {10.3390/cancers15030628}
+}
+
+@article{louis2021who,
+  author       = {Louis, David N. and Perry, Arie and Wesseling, Pieter and Brat, Daniel J. and Cree, Ian A. and Figarella-Branger, Dominique and Hawkins, Cynthia and Ng, H. K. and Pfister, Stefan M. and Reifenberger, Guido and Soffietti, Riccardo and von Deimling, Andreas and Ellison, David W.},
+  title        = {The 2021 {WHO} Classification of Tumors of the Central Nervous System: a summary},
+  journaltitle = {Neuro-Oncology},
+  year         = {2021},
+  volume       = {23},
+  number       = {8},
+  pages        = {1231--1251},
+  doi          = {10.1093/neuonc/noab106}
+}
+
+@article{ostrom2023cbtrus,
+  author       = {Ostrom, Quinn T. and Price, Mackenzie and Neff, Corey and Cioffi, Gino and Waite, Kristin A. and Kruchko, Carol and Barnholtz-Sloan, Jill S.},
+  title        = {{CBTRUS} Statistical Report: Primary Brain and Other Central Nervous System Tumors Diagnosed in the United States in 2016--2020},
+  journaltitle = {Neuro-Oncology},
+  year         = {2023},
+  volume       = {25},
+  number       = {Supplement 4},
+  pages        = {iv1--iv99},
+  doi          = {10.1093/neuonc/noad149}
+}
+
+%====================================================================
+% IA EN RADIOLOGÍA: GENERAL, ADOPCIÓN Y UTILIDAD OPERATIVA (cap. 3.3, 3.6, 8)
+%====================================================================
+
+@article{avanzo2024evolution,
+  author       = {Avanzo, Michele and Stancanello, Joseph and Pirrone, Giovanni and Drigo, Annalisa and Retico, Alessandra},
+  title        = {The Evolution of Artificial Intelligence in Medical Imaging: From Computer Science to Machine and Deep Learning},
+  journaltitle = {Cancers},
+  year         = {2024},
+  volume       = {16},
+  number       = {21},
+  pages        = {3702},
+  doi          = {10.3390/cancers16213702}
+}
+
+@article{driver2019radiology,
+  author       = {Driver, Cole N. and Bowles, Bryce S. and Bartholmai, Brian J. and Greenberg-Worisek, Alexandra J.},
+  title        = {Artificial Intelligence in Radiology: A Call for Thoughtful Application},
+  journaltitle = {Clinical and Translational Science},
+  year         = {2020},
+  volume       = {13},
+  number       = {2},
+  pages        = {216--218},
+  doi          = {10.1111/cts.12704}
+}
+
+@article{langs2023ai,
+  author       = {Langs, Georg},
+  title        = {Artificial intelligence in medical imaging is a tool for clinical routine and scientific discovery},
+  journaltitle = {Seminars in Arthritis and Rheumatism},
+  year         = {2023},
+  volume       = {64},
+  pages        = {152321},
+  doi          = {10.1016/j.semarthrit.2023.152321}
+}
+
+@article{wagner2021radiomics,
+  author       = {Wagner, Matthias W. and Namdar, Khashayar and Biswas, Asthik and Monah, Suzanne and Khalvati, Farzad and Ertl-Wagner, Birgit B.},
+  title        = {Radiomics, machine learning, and artificial intelligence---what the neuroradiologist needs to know},
+  journaltitle = {Neuroradiology},
+  year         = {2021},
+  volume       = {63},
+  number       = {12},
+  pages        = {1957--1967},
+  doi          = {10.1007/s00234-021-02813-9}
+}
+
+@article{yeasmin2024advances,
+  author       = {Yeasmin, Mst. Nasrin and Amin, Md. Al and Joti, Tasmim Jamal and Aung, Zeyar and Azim, Md. Abdul},
+  title        = {Advances of {AI} in image-based computer-aided diagnosis: A review},
+  journaltitle = {Array},
+  year         = {2024},
+  volume       = {23},
+  pages        = {100357},
+  doi          = {10.1016/j.array.2024.100357}
+}
+
+@article{zech2022fracture,
+  author       = {Zech, John R. and Santomartino, Samantha M. and Yi, Paul H.},
+  title        = {Artificial Intelligence ({AI}) for Fracture Diagnosis: An Overview of Current Products and Considerations for Clinical Adoption},
+  journaltitle = {American Journal of Roentgenology},
+  year         = {2022},
+  volume       = {219},
+  number       = {6},
+  pages        = {869--878},
+  doi          = {10.2214/AJR.22.27873}
+}
+
+@article{lee2022implementation,
+  author       = {Lee, Seungsoo and Shin, Hyun Joo and Kim, Sungwon and Kim, Eun-Kyung},
+  title        = {Successful Implementation of an Artificial Intelligence-Based Computer-Aided Detection System for Chest Radiography in Daily Clinical Practice},
+  journaltitle = {Korean Journal of Radiology},
+  year         = {2022},
+  volume       = {23},
+  number       = {9},
+  pages        = {847--856},
+  doi          = {10.3348/kjr.2022.0193}
+}
+
+@article{sharma2020diagnostic,
+  author       = {Sharma, Puneet and Suehling, Michael and Flohr, Thomas and Comaniciu, Dorin},
+  title        = {Artificial Intelligence in Diagnostic Imaging: Status Quo, Challenges, and Future Opportunities},
+  journaltitle = {Journal of Thoracic Imaging},
+  year         = {2020},
+  volume       = {35},
+  number       = {Suppl 1},
+  pages        = {S11--S16},
+  doi          = {10.1097/RTI.0000000000000499}
+}
+
+@article{hickman2021breast,
+  author       = {Hickman, Sarah E. and Baxter, Gabrielle C. and Gilbert, Fiona J.},
+  title        = {Adoption of artificial intelligence in breast imaging: evaluation, ethical constraints and limitations},
+  journaltitle = {British Journal of Cancer},
+  year         = {2021},
+  volume       = {125},
+  number       = {1},
+  pages        = {15--22},
+  doi          = {10.1038/s41416-021-01333-w}
+}
+
+@article{lambert2023acceptance,
+  author       = {Lambert, Sophie I. and Madi, Murielle and Sopka, Saskia and Lenes, Andrea and Stange, Hendrik and Buszello, Claus-Peter and Stephan, Astrid},
+  title        = {An integrative review on the acceptance of artificial intelligence among healthcare professionals in hospitals},
+  journaltitle = {npj Digital Medicine},
+  year         = {2023},
+  volume       = {6},
+  number       = {1},
+  pages        = {111},
+  doi          = {10.1038/s41746-023-00852-5}
+}
+
+%====================================================================
+% DATASETS / FUENTES ADICIONALES OBLIGATORIAS (cap. 4.1)
+% (Verificadas por web el 2026-06-06)
+%====================================================================
+
+@article{menze2015brats,
+  author       = {Menze, Bjoern H. and Jakab, Andras and Bauer, Stefan and Kalpathy-Cramer, Jayashree and Farahani, Keyvan and Kirby, Justin and Burren, Yuliya and Porz, Nicole and Slotboom, Johannes and Wiest, Roland and others},
+  title        = {The Multimodal Brain Tumor Image Segmentation Benchmark ({BRATS})},
+  journaltitle = {IEEE Transactions on Medical Imaging},
+  year         = {2015},
+  volume       = {34},
+  number       = {10},
+  pages        = {1993--2024},
+  doi          = {10.1109/TMI.2014.2377694}
+}
+
+@article{bakas2017advancing,
+  author       = {Bakas, Spyridon and Akbari, Hamed and Sotiras, Aristeidis and Bilello, Michel and Rozycki, Martin and Kirby, Justin S. and Freymann, John B. and Farahani, Keyvan and Davatzikos, Christos},
+  title        = {Advancing The Cancer Genome Atlas glioma {MRI} collections with expert segmentation labels and radiomic features},
+  journaltitle = {Scientific Data},
+  year         = {2017},
+  volume       = {4},
+  pages        = {170117},
+  doi          = {10.1038/sdata.2017.117}
+}
+
+@article{clark2013tcia,
+  author       = {Clark, Kenneth and Vendt, Bruce and Smith, Kirk and Freymann, John and Kirby, Justin and Koppel, Paul and Moore, Stephen and Phillips, Stanley and Maffitt, David and Pringle, Michael and Tarbox, Lawrence and Prior, Fred},
+  title        = {The Cancer Imaging Archive ({TCIA}): Maintaining and Operating a Public Information Repository},
+  journaltitle = {Journal of Digital Imaging},
+  year         = {2013},
+  volume       = {26},
+  number       = {6},
+  pages        = {1045--1057},
+  doi          = {10.1007/s10278-013-9622-7}
+}
+
+%====================================================================
+% HERRAMIENTAS Y MÉTODOS TÉCNICOS (cap. 5, 6.7, 7.6)
+% (Verificadas por web el 2026-06-06)
+%====================================================================
+
+@article{isensee2021nnunet,
+  author       = {Isensee, Fabian and Jaeger, Paul F. and Kohl, Simon A. A. and Petersen, Jens and Maier-Hein, Klaus H.},
+  title        = {{nnU-Net}: a self-configuring method for deep learning-based biomedical image segmentation},
+  journaltitle = {Nature Methods},
+  year         = {2021},
+  volume       = {18},
+  number       = {2},
+  pages        = {203--211},
+  doi          = {10.1038/s41592-020-01008-z}
+}
+
+@article{li2016dcm2niix,
+  author       = {Li, Xiangrui and Morgan, Paul S. and Ashburner, John and Smith, Jolinda and Rorden, Christopher},
+  title        = {The first step for neuroimaging data analysis: {DICOM} to {NIfTI} conversion},
+  journaltitle = {Journal of Neuroscience Methods},
+  year         = {2016},
+  volume       = {264},
+  pages        = {47--56},
+  doi          = {10.1016/j.jneumeth.2016.03.001}
+}
+
+@inproceedings{paszke2019pytorch,
+  author       = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and others},
+  title        = {{PyTorch}: An Imperative Style, High-Performance Deep Learning Library},
+  booktitle    = {Advances in Neural Information Processing Systems 32 ({NeurIPS} 2019)},
+  year         = {2019},
+  pages        = {8024--8035},
+  url          = {https://proceedings.neurips.cc/paper/2019/hash/bdbca288fee7f92f2bfa9f7012727740-Abstract.html}
+}
+
+@inproceedings{loshchilov2019adamw,
+  author       = {Loshchilov, Ilya and Hutter, Frank},
+  title        = {Decoupled Weight Decay Regularization},
+  booktitle    = {International Conference on Learning Representations ({ICLR})},
+  year         = {2019},
+  eprint       = {1711.05101},
+  eprinttype   = {arxiv},
+  url          = {https://arxiv.org/abs/1711.05101}
+}
+
+@inproceedings{wu2018groupnorm,
+  author       = {Wu, Yuxin and He, Kaiming},
+  title        = {Group Normalization},
+  booktitle    = {Proceedings of the European Conference on Computer Vision ({ECCV})},
+  year         = {2018},
+  pages        = {3--19},
+  eprint       = {1803.08494},
+  eprinttype   = {arxiv},
+  url          = {https://arxiv.org/abs/1803.08494}
+}
+
+@inproceedings{selvaraju2017gradcam,
+  author       = {Selvaraju, Ramprasaath R. and Cogswell, Michael and Das, Abhishek and Vedantam, Ramakrishna and Parikh, Devi and Batra, Dhruv},
+  title        = {{Grad-CAM}: Visual Explanations from Deep Networks via Gradient-Based Localization},
+  booktitle    = {2017 IEEE International Conference on Computer Vision ({ICCV})},
+  year         = {2017},
+  pages        = {618--626},
+  doi          = {10.1109/ICCV.2017.74}
+}
+
+@article{maaten2008tsne,
+  author       = {van der Maaten, Laurens and Hinton, Geoffrey},
+  title        = {Visualizing Data using {t-SNE}},
+  journaltitle = {Journal of Machine Learning Research},
+  year         = {2008},
+  volume       = {9},
+  pages        = {2579--2605},
+  url          = {https://www.jmlr.org/papers/v9/vandermaaten08a.html}
+}
+
+@article{pedregosa2011sklearn,
+  author       = {Pedregosa, Fabian and Varoquaux, Ga{\"e}l and Gramfort, Alexandre and Michel, Vincent and Thirion, Bertrand and Grisel, Olivier and Blondel, Mathieu and Prettenhofer, Peter and Weiss, Ron and Dubourg, Vincent and others},
+  title        = {Scikit-learn: Machine Learning in {Python}},
+  journaltitle = {Journal of Machine Learning Research},
+  year         = {2011},
+  volume       = {12},
+  pages        = {2825--2830},
+  url          = {https://www.jmlr.org/papers/v12/pedregosa11a.html}
+}
+
+%====================================================================
+% ARMONIZACIÓN Y ADAPTACIÓN DE DOMINIO (cap. 10 — trabajo futuro)
+% (Verificadas por web el 2026-06-07)
+%====================================================================
+
+@article{johnson2007combat,
+  author       = {Johnson, W. Evan and Li, Cheng and Rabinovic, Ariel},
+  title        = {Adjusting batch effects in microarray expression data using empirical {Bayes} methods},
+  journaltitle = {Biostatistics},
+  year         = {2007},
+  volume       = {8},
+  number       = {1},
+  pages        = {118--127},
+  doi          = {10.1093/biostatistics/kxj037}
+}
+
+@article{fortin2017harmonization,
+  author       = {Fortin, Jean-Philippe and Parker, Drew and Tun{\c{c}}, Birkan and Watanabe, Takanori and Elliott, Mark A. and Ruparel, Kosha and Roalf, David R. and Satterthwaite, Theodore D. and Gur, Ruben C. and Gur, Raquel E. and Schultz, Robert T. and Verma, Ragini and Shinohara, Russell T.},
+  title        = {Harmonization of multi-site diffusion tensor imaging data},
+  journaltitle = {NeuroImage},
+  year         = {2017},
+  volume       = {161},
+  pages        = {149--170},
+  doi          = {10.1016/j.neuroimage.2017.08.047}
+}
+
+@article{ganin2016dann,
+  author       = {Ganin, Yaroslav and Ustinova, Evgeniya and Ajakan, Hana and Germain, Pascal and Larochelle, Hugo and Laviolette, Fran{\c{c}}ois and Marchand, Mario and Lempitsky, Victor},
+  title        = {Domain-Adversarial Training of Neural Networks},
+  journaltitle = {Journal of Machine Learning Research},
+  year         = {2016},
+  volume       = {17},
+  number       = {59},
+  pages        = {1--35},
+  url          = {https://jmlr.org/papers/v17/15-239.html}
 }

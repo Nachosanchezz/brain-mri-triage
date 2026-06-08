@@ -1,17 +1,102 @@
 \chapter{Introducción}
-% TODO: redactar capítulo de introducción
 
 \section{Contexto clínico y motivación}
-% TODO
+
+Las masas tumorales intracraneales constituyen un grupo de lesiones de elevada
+relevancia clínica: su localización dentro del cráneo hace que incluso lesiones
+histológicamente poco agresivas puedan producir síntomas por efecto masa, edema o
+compresión de estructuras críticas, y su hallazgo desencadena con frecuencia una
+cadena de decisiones diagnósticas y terapéuticas de gran impacto. La resonancia
+magnética (RM) cerebral es la técnica de referencia para su detección y
+caracterización, por lo que la rapidez con la que un estudio con sospecha de masa
+llega a ser revisado puede condicionar el itinerario del paciente.
+
+En paralelo, el volumen de exploraciones de imagen ha crecido de forma sostenida,
+y con él la carga de trabajo de los servicios de radiología. En contextos de alta
+demanda ---guardias, turnos nocturnos o acumulación de listas de lectura--- el
+orden en que se revisan los estudios deja de ser indiferente. De ahí el interés
+por los sistemas de priorización automática, que reordenan la lista de trabajo
+para que los estudios potencialmente urgentes sean atendidos antes, sin sustituir
+el juicio del especialista~\cite{titano2018cranial}. La priorización de estudios
+de RM cerebral con sospecha de masa tumoral es, en este sentido, una tarea con
+interés asistencial directo y, a la vez, metodológicamente acotada: no exige
+emitir un diagnóstico completo, sino estimar si un estudio merece revisión
+prioritaria.
 
 \section{Planteamiento del problema}
-% TODO
+
+Formular esa priorización como una tarea de clasificación binaria
+tumor/no-tumor a nivel de estudio, y abordarla con aprendizaje profundo a partir
+de datos públicos, es un enfoque atractivo y habitual. Sin embargo, los datasets
+públicos de RM cerebral suelen ser \emph{monoclase}: unos aportan únicamente
+casos con tumor y otros únicamente sujetos sin lesión. Al combinarlos para
+construir el conjunto de entrenamiento, se corre el riesgo de que la clase quede
+correlacionada con la procedencia del estudio, es decir, con el centro, el equipo
+y el protocolo de adquisición.
+
+Cuando esa correlación es alta, una métrica de validación interna elevada deja de
+ser informativa: un modelo puede alcanzarla reconociendo la firma de adquisición
+de cada cohorte en lugar de la señal patológica. Este fenómeno ---el aprendizaje
+de atajos espurios en lugar de la característica de interés--- está bien
+documentado en aprendizaje profundo~\cite{geirhos2020shortcut} y, de forma
+específica, en imagen médica, donde modelos aparentemente exitosos resultaron
+apoyarse en marcadores de procedencia antes que en signos de
+enfermedad~\cite{zech2018pneumonia}. En consecuencia, un buen resultado interno es
+una condición necesaria pero no suficiente para afirmar que un sistema detecta
+lesión, y exige una verificación específica antes de ser interpretado como tal.
 
 \section{De la hipótesis clínica inicial a la auditoría metodológica del modelo}
-% TODO
+
+Este trabajo parte de una pregunta clínica legítima ---si una red convolucional
+3D puede priorizar estudios de RM con sospecha de masa tumoral--- y la aborda de
+forma deliberadamente crítica. En lugar de dar por buena la métrica que arroja un
+clasificador entrenado sobre el conjunto multi-fuente, adopta como objeto de
+estudio la propia \emph{validez} de ese rendimiento: la pregunta operativa se
+desplaza de «¿qué rendimiento se obtiene?» a «¿ese rendimiento refleja detección
+de lesión o reconocimiento de la procedencia del estudio?».
+
+Este desplazamiento no es una renuncia a la motivación clínica, sino la postura
+analítica que el problema exige cuando clase y dominio pueden confundirse. El
+título de la memoria lo encapsula: el núcleo no es entregar un clasificador, sino
+realizar un \emph{análisis crítico del sesgo de dominio} en este tipo de sistemas.
+Bajo esta perspectiva, el clasificador deja de ser el producto y pasa a ser el
+sujeto de una auditoría: un caso de estudio sobre el que medir, de forma
+reproducible, si el aprendizaje es genuino o espurio.
 
 \section{Objetivos y contribuciones}
-% TODO
+
+El objetivo de este trabajo es auditar, sobre un clasificador tumor/no-tumor
+basado en una CNN 3D y entrenado con RM cerebral pública multi-fuente, si su
+rendimiento aparente refleja la detección de lesión o la explotación de un
+\emph{confound} dominio$\leftrightarrow$clase, y proponer un protocolo
+reproducible para diagnosticar este modo de fallo. La hipótesis de trabajo es que,
+cuando la etiqueta coincide con el dataset de origen, el rendimiento interno es
+atribuible al confound y no constituye evidencia de capacidad de detección; el
+trabajo se diseña para contrastar esa hipótesis de forma sistemática.
+
+De este planteamiento se derivan tres contribuciones. La primera es un
+\textbf{pipeline 3D reproducible} para clasificación de RM cerebral multi-fuente,
+con preprocesado homogéneo, partición a nivel de sujeto y semillas fijas. La
+segunda, y principal, es un \textbf{protocolo de auditoría anti-confounding} que
+encadena un baseline trivial de intensidad, validación cruzada por dominio
+(\emph{leave-one-dataset-out}), validación intra-dominio y análisis del espacio
+latente, junto con el descarte explícito de fugas por partición y duplicados. La
+tercera es la \textbf{caracterización del modo de fallo}: la identificación del
+confound dominio$\leftrightarrow$clase como causa del rendimiento aparente y de
+las recomendaciones metodológicas que de ello se siguen para el trabajo con datos
+públicos heterogéneos. La formulación detallada de estos objetivos se presenta en
+el capítulo siguiente.
 
 \section{Estructura de la memoria}
-% TODO
+
+La memoria se organiza como sigue. El presente capítulo (1) introduce el problema
+y los objetivos, que se enuncian de forma detallada en el capítulo~2. El
+capítulo~3 revisa el estado del arte ---contexto clínico, RM cerebral, aprendizaje
+profundo en imagen médica, sesgo de dominio y triaje--- y sitúa el hueco que
+aborda el trabajo. El capítulo~4 describe los materiales y datos, y el capítulo~5
+la metodología (modelo, entrenamiento y partición). El capítulo~6 detalla el
+diseño experimental y el protocolo de validación, sin cifras, y el capítulo~7
+reporta los resultados de cada experimento. El capítulo~8 los discute e
+interpreta a la luz de la literatura. Finalmente, el capítulo~9 recoge las
+conclusiones, el capítulo~10 las limitaciones y el trabajo futuro, y los anexos
+reúnen el material de apoyo.

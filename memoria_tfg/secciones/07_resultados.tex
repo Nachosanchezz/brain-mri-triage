@@ -1,23 +1,315 @@
 \chapter{Resultados: análisis progresivo de validez del rendimiento aparente}
-% TODO: redactar capítulo de resultados (sin insertar resultados todavía)
+
+Este capítulo reporta e interpreta los resultados de cada experimento definido
+en el capítulo anterior. Las métricas, particiones e hipótesis ya quedaron
+fijadas en el capítulo de diseño experimental, por lo que aquí se presentan
+exclusivamente las cifras ---cada una trazable a su archivo de
+\texttt{docs/audit/}--- y su lectura. El hilo conductor es un análisis
+progresivo de validez: se parte de un rendimiento interno aparentemente
+excelente y se somete a una cadena de pruebas que revela que dicho rendimiento
+es atribuible a un \emph{confound} dominio$\leftrightarrow$clase y no a la
+detección de lesión.
 
 \section{Rendimiento aparente en el pool multi-fuente}
-% TODO
+
+La red convolucional 3D entrenada y evaluada sobre el pool multi-fuente alcanza,
+en el conjunto de test reservado ($n=340$: 175 positivos y 165 negativos), un
+área bajo la curva ROC de \textbf{0,9999} (valor exacto $0{,}999965$), con
+PR-AUC $0{,}99997$, sensibilidad $0{,}9943$, especificidad $1{,}000$ y exactitud
+$0{,}99706$ (Tabla~\ref{tab:pool_global}). A umbral $0{,}5$, la matriz de
+confusión es prácticamente diagonal: 174 verdaderos positivos, 0 falsos
+positivos, 165 verdaderos negativos y un único falso negativo, el estudio
+\texttt{BraTS2021\_00736} (con probabilidad asignada $0{,}092$).
+
+\begin{table}[ht]
+  \centering
+  \caption[Rendimiento global de la CNN en el pool]{Métricas globales de la red
+  convolucional 3D sobre el test del pool multi-fuente ($n=340$). Fuente:
+  \texttt{cnn3d\_test\_results.json}.}
+  \label{tab:pool_global}
+  \begin{tabular}{l c}
+    \hline
+    \textbf{Métrica} & \textbf{Valor} \\
+    \hline
+    AUC-ROC                 & 0,9999 (exacto 0,999965) \\
+    PR-AUC                  & 0,99997 \\
+    Sensibilidad            & 0,9943 \\
+    Especificidad           & 1,000 \\
+    Exactitud               & 0,99706 \\
+    Matriz @0,5 (TP/FP/TN/FN) & 174 / 0 / 165 / 1 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+El desglose por dataset (Tabla~\ref{tab:pool_perdataset}) revela el primer
+indicio de anomalía. Las probabilidades que asigna el modelo están
+prácticamente saturadas y separadas según la fuente: media $0{,}9995$ en UPENN y
+$0{,}986$ en BraTS (positivos), frente a $0{,}0070$ en IXI y $0{,}0008$ en NKI
+Rockland (negativos), con desviaciones intra-dataset muy pequeñas (del orden de
+$0{,}0005$ en UPENN y NKI). Además, el AUC \emph{intra-dataset} es indefinible
+en las cuatro cohortes, porque cada una aporta una sola clase.
+
+\begin{table}[ht]
+  \centering
+  \caption[Resultados por dataset en el pool]{Resultados por dataset de origen en
+  el test del pool. La especificidad y la sensibilidad son indefinibles
+  (---) en las cohortes monoclase, al igual que el AUC intra-dataset. Fuente:
+  \texttt{cnn3d\_test\_results.json}.}
+  \label{tab:pool_perdataset}
+  \begin{tabular}{l c c c c}
+    \hline
+    \textbf{Dataset} & \textbf{$n$ (pos/neg)} & \textbf{Score medio} & \textbf{Sen.} & \textbf{Esp.} \\
+    \hline
+    BraTS        & 87 (87/0)  & 0,986 $\pm$ 0,098  & 0,9885 & --- \\
+    UPENN        & 88 (88/0)  & 0,9995 $\pm$ 0,0005 & 1,000  & --- \\
+    IXI          & 86 (0/86)  & 0,0070 $\pm$ 0,018 & ---    & 1,000 \\
+    NKI Rockland & 79 (0/79)  & 0,0008 $\pm$ 0,0005 & ---    & 1,000 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Este resultado \textbf{no debe interpretarse como un logro}. Un rendimiento casi
+perfecto en un problema clínicamente difícil, sumado a unas probabilidades
+bimodales por cohorte y a la imposibilidad de medir discriminación dentro de
+cada dataset, configura una \emph{anomalía que exige auditoría}. Las secciones
+siguientes determinan si estas cifras reflejan detección de lesión o una
+correlación espuria con la procedencia del estudio.
 
 \section{Decodificabilidad trivial de la etiqueta}
-% TODO
+
+El primer eslabón del protocolo establece una cota trivial. Un \emph{baseline}
+trivial de intensidad ---una regresión logística sobre estadísticos groseros de
+intensidad por volumen, sin red neuronal ni información anatómica--- alcanza un
+AUC de \textbf{1,0000} y una exactitud de $0{,}9941$ sobre el mismo conjunto de
+test; el \emph{random forest} equivalente obtiene AUC $0{,}9989$ y exactitud
+$0{,}9882$ (cifras de \texttt{audit\_leakage.json}).
+
+La característica más informativa del \emph{random forest} es la fracción de
+vóxeles no nulos en T1 (\texttt{nz\_frac\_t1}), con una importancia de $0{,}17$:
+una huella directa de la extracción craneal, esto es, del preprocesado, y no de
+la anatomía tumoral. Que la etiqueta sea decodificable casi a la perfección a
+partir de descriptores de intensidad de bajo nivel demuestra que la información
+que separa las clases no es clínica. Por tanto, las métricas casi perfectas de
+la red no pueden interpretarse como evidencia de detección de lesión.
 
 \section{Identificabilidad del dominio}
-% TODO
+
+Si la etiqueta es decodificable desde la intensidad, cabe esperar que el propio
+dataset de origen también lo sea. Un clasificador de origen (cuatro clases)
+entrenado sobre los mismos estadísticos de intensidad alcanza una exactitud de
+\textbf{0,9853}, muy por encima del azar ($0{,}25$). La procedencia del estudio
+es, pues, trivialmente identificable a partir de los píxeles crudos.
+
+La comprobación formal de la composición confirma el origen del problema: la
+relación \texttt{label}\,$\equiv$\,\texttt{dataset} es exacta (BraTS y UPENN
+toman únicamente la etiqueta tumor; IXI y NKI Rockland, únicamente no-tumor), de
+modo que «reconocer la cohorte» y «predecir la clase» son operaciones
+equivalentes. Este es el \emph{confound} dominio$\leftrightarrow$clase. La
+separabilidad de las cohortes en los datos crudos ya se aprecia en las
+distribuciones de intensidad por dataset (Figura~\ref{fig:intensity}, en el
+capítulo de materiales): el confound precede al modelo, vive en los propios
+píxeles.
+
+Conviene precisar el alcance de esta cifra para evitar una confusión frecuente:
+el $0{,}9853$ corresponde al clasificador de origen sobre \emph{intensidad}; más
+adelante (Sección~\ref{sec:latente}) se reporta una exactitud distinta,
+$0{,}982$, para un clasificador de origen entrenado sobre los \emph{embeddings}
+de la red. Son dos resultados independientes y no deben confundirse. Por último,
+la búsqueda de duplicados exactos entre particiones (mediante hash de los
+volúmenes) arroja \textbf{0 grupos}, lo que descarta la fuga por repetición de
+muestras como explicación alternativa.
 
 \section{Generalización fuera de dominio LODO}
-% TODO
+
+El régimen \emph{leave-one-dataset-out} (LODO) somete a la red a cohortes nunca
+vistas. Al entrenar con BraTS+IXI y evaluar en UPENN+NKI (configuración A,
+$n=1110$), el AUC en test cae a \textbf{0,6236} (sensibilidad $0{,}6763$,
+especificidad $0{,}4627$). En la dirección opuesta ---entrenar con UPENN+NKI y
+evaluar en BraTS+IXI (configuración B, $n=1157$)--- el AUC desciende a
+\textbf{0,2012}, con sensibilidad $0{,}0103$ y especificidad $0{,}9653$. Un AUC
+inferior a $0{,}5$ indica que la regla de decisión aprendida se \emph{invierte}
+al cambiar de cohorte: lo que el modelo asocia a «tumor» en unas fuentes lo
+asocia a «sano» en otras.
+
+\begin{table}[ht]
+  \centering
+  \caption[Resultados de validación cruzada LODO]{Resultados \emph{leave-one-dataset-out}.
+  CNN en las direcciones A y B; \emph{baseline} trivial de intensidad en las
+  cuatro configuraciones. Fuentes: \texttt{lodo\_A/B\_cnn3d\_test\_results.json}
+  y \texttt{audit\_lodo.json}.}
+  \label{tab:lodo_resultados}
+  \begin{tabular}{l l c c}
+    \hline
+    \textbf{Config.} & \textbf{Entrenamiento $\rightarrow$ test} & \textbf{Modelo} & \textbf{AUC test} \\
+    \hline
+    A & BraTS+IXI $\rightarrow$ UPENN+NKI & CNN              & 0,6236 \\
+    B & UPENN+NKI $\rightarrow$ BraTS+IXI & CNN              & 0,2012 \\
+    A & BraTS+IXI $\rightarrow$ UPENN+NKI & LogReg / RF      & 0,9952 / 0,9889 \\
+    B & UPENN+NKI $\rightarrow$ BraTS+IXI & LogReg / RF      & 0,3184 / 0,6957 \\
+    C & BraTS+NKI $\rightarrow$ UPENN+IXI & LogReg / RF      & 0,0412 / 0,0338 \\
+    D & UPENN+IXI $\rightarrow$ BraTS+NKI & LogReg / RF      & 0,0469 / 0,2752 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+El \emph{baseline} trivial reproduce el mismo patrón asimétrico y caótico a
+través de las cuatro configuraciones (Tabla~\ref{tab:lodo_resultados}), con
+valores que oscilan entre $0{,}9952$ y $0{,}0338$ según qué cohortes se
+emparejen. Tanto la caída como la inversión son incompatibles con un detector
+genuino de tumor ---que generalizaría a cohortes nuevas--- y plenamente
+coherentes con un clasificador de firmas de adquisición y preprocesado: cuando
+las firmas de las cohortes de test difieren de las de entrenamiento, la
+predicción se descoloca o se invierte. Las curvas ROC y los histogramas de
+scores que ilustran este comportamiento se detallan en el anexo.
 
 \section{Validación intra-dominio BTC\_preop}
-% TODO
+
+La prueba decisiva es la validación intra-dominio sobre BTC\_preop, donde tumor
+y control proceden del mismo escáner y el \emph{confound} de dominio está
+controlado por construcción. Con $n=36$ (25 tumor / 11 control) y validación
+cruzada de $k=5$ pliegues, la red convolucional (a un canal) obtiene un AUC
+global de \textbf{0,4036}, con intervalo de confianza al 95\,\% de
+$[0{,}213;\ 0{,}623]$; la sensibilidad es $0{,}60$ y la especificidad $0{,}3636$
+a umbral $0{,}5$ (Tabla~\ref{tab:btc_resultados}). El \emph{baseline} trivial de
+intensidad se sitúa igualmente en torno al azar: AUC $0{,}5491$
+($[0{,}319;\ 0{,}788]$) la regresión logística y $0{,}4055$
+($[0{,}215;\ 0{,}616]$) el \emph{random forest}.
+
+\begin{table}[ht]
+  \centering
+  \caption[Resultados de validación intra-dominio BTC\_preop]{Validación
+  intra-dominio sobre BTC\_preop ($n=36$, $k=5$). Todos los intervalos de
+  confianza al 95\,\% cruzan $0{,}5$. Fuentes:
+  \texttt{btc\_intradomain\_cnn\_kfold\_results.json} y
+  \texttt{btc\_intradomain\_tinybaseline.json}.}
+  \label{tab:btc_resultados}
+  \begin{tabular}{l c c}
+    \hline
+    \textbf{Modelo} & \textbf{AUC global} & \textbf{IC95\%} \\
+    \hline
+    CNN 3D (1 canal)         & 0,4036 & [0,213; 0,623] \\
+    \emph{Baseline} LogReg   & 0,5491 & [0,319; 0,788] \\
+    \emph{Baseline} RF       & 0,4055 & [0,215; 0,616] \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Los AUC por pliegue de la red ($0{,}4$, $0{,}3$, $0{,}2$, $0{,}6$ y $0{,}2$) son
+dispersos, y las probabilidades emitidas se concentran de forma casi constante en
+torno a $0{,}50$ (variaciones en la tercera y cuarta cifra decimal), lo que
+indica que el modelo no extrae señal con el tamaño muestral disponible. La
+lectura de estos resultados debe ser estricta: como el intervalo de confianza
+del AUC cruza $0{,}5$ con holgura en todos los casos, lo único que cabe afirmar
+es que \textbf{no se observa señal por encima del azar} con $n=36$. No es lícito
+concluir que el modelo «no detecta tumor», ni interpretar un AUC inferior a
+$0{,}5$ como una «anti-detección»: se trata de variabilidad por muestreo en una
+cohorte pequeña. El gráfico de AUC por pliegue se incluye en el anexo. Lo
+relevante a efectos del trabajo es que, eliminado el confound por construcción,
+desaparece el rendimiento casi perfecto observado en el pool.
 
 \section{Evidencia en el espacio latente y mapas de atención}
-% TODO
+\label{sec:latente}
+
+El último eslabón examina qué codifica internamente la red del régimen
+confundido, a partir de su vector latente de 96 dimensiones. La prueba decisiva
+es una \textbf{sonda intra-clase}: restringiendo el análisis a sujetos de la
+misma clase, un clasificador lineal sobre los embeddings distingue las dos
+cohortes de sujetos \emph{sanos}, IXI frente a NKI Rockland, con un AUC en
+validación cruzada de \textbf{0,998}. Dados dos sujetos igualmente sanos, el
+espacio latente permite identificar su cohorte de origen casi sin error, una
+capacidad que nada tiene que ver con la presencia de tumor. El mismo análisis
+sobre las dos cohortes de \emph{tumor}, BraTS frente a UPENN, da un AUC de
+$0{,}991$; y un clasificador del dataset de origen (cuatro clases) entrenado
+sobre los embeddings alcanza una exactitud de $0{,}982$ (azar $0{,}25$). La
+representación interna funciona, en la práctica, como un identificador del centro
+de adquisición.
+
+Conviene situar correctamente el coeficiente \emph{silhouette} global para no
+sobreinterpretarlo. La compacidad de los agrupamientos es mayor por etiqueta
+($0{,}754$) que por dataset ($0{,}366$); sin embargo, dado que en el pool la
+clase coincide con la cohorte (\texttt{label}\,$\equiv$\,\texttt{dataset}), esa
+mayor separación por etiqueta es ambigua y esperable, y \textbf{no} constituye
+evidencia de estructura clínica: no permite distinguir si el latente organiza el
+espacio por «tumor» o por «procedencia». Es la sonda intra-clase anterior ---que
+separa cohortes de idéntica clase--- la que resuelve la ambigüedad y muestra que
+lo codificado es la procedencia. Ambas medidas se reportan juntas por honestidad
+metodológica: el \emph{silhouette} global se presenta como confundido, y el
+análisis intra-clase como la prueba limpia.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figuras/embeddings_tsne.png}
+  \caption[Proyección t-SNE del espacio latente]{Proyección t-SNE del vector
+  latente de 96 dimensiones de la CNN del régimen confundido, coloreada por
+  dataset (izquierda) y por etiqueta (derecha). Los agrupamientos se organizan
+  por cohorte de origen: IXI y NKI Rockland, pese a ser ambos de sujetos sanos,
+  no se fusionan. El espacio latente codifica la procedencia, no la patología.}
+  \label{fig:tsne}
+\end{figure}
+
+La proyección t-SNE de los embeddings (Figura~\ref{fig:tsne}) ilustra
+visualmente esta conclusión: los clústeres se separan por dataset, y las dos
+cohortes sanas permanecen distinguibles entre sí. Finalmente, se realizó un
+análisis exploratorio de mapas de atención (Grad-CAM) sobre la red; sus
+resultados son \textbf{no concluyentes} ---la atención tiende a concentrarse en
+bordes y periferia--- y se reportan únicamente en el anexo, sin extraer de ellos
+ninguna afirmación sobre la capacidad de detección.
 
 \section{Síntesis consolidada de resultados}
-% TODO
+
+La Tabla~\ref{tab:sintesis} reúne el arco completo de la auditoría. El patrón es
+inequívoco: el rendimiento casi perfecto del régimen interno (AUC $0{,}9999$),
+reproducido por un \emph{baseline} trivial de intensidad (AUC $1{,}0000$), se
+degrada y se invierte fuera de dominio (LODO A $0{,}6236$; LODO B $0{,}2012$) y
+colapsa hasta el azar cuando ambas clases proceden del mismo escáner (BTC\_preop
+$0{,}4036$, con intervalo de confianza que cruza $0{,}5$).
+
+\begin{table}[ht]
+  \centering
+  \caption[Síntesis del arco de validación]{Síntesis del arco de validación, del
+  régimen confundido al intra-dominio. Fuente: \texttt{resumen\_consolidado.json}
+  (los IC95\% solo aplican al régimen intra-dominio con \emph{bootstrap}).}
+  \label{tab:sintesis}
+  \begin{tabular}{l l c c}
+    \hline
+    \textbf{Régimen} & \textbf{Modelo} & \textbf{AUC} & \textbf{IC95\%} \\
+    \hline
+    Pool (confundido)         & CNN 3D                  & 0,9999 & --- \\
+    Pool (confundido)         & \emph{Baseline} LogReg  & 1,0000 & --- \\
+    LODO A                    & CNN 3D                  & 0,6236 & --- \\
+    LODO B                    & CNN 3D                  & 0,2012 & --- \\
+    Intra-dominio BTC         & CNN 3D                  & 0,4036 & [0,213; 0,623] \\
+    Intra-dominio BTC         & \emph{Baseline} LogReg  & 0,5491 & [0,319; 0,788] \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figuras/auc_summary.png}
+  \caption[AUC por régimen de evaluación]{AUC por régimen de evaluación con sus
+  intervalos de confianza al 95\,\%. El rendimiento se desploma desde valores
+  próximos a $1{,}0$ en el régimen confundido hasta el azar al controlar el
+  dominio.}
+  \label{fig:aucsummary}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figuras/confusion_matrices.png}
+  \caption[Matrices de confusión por régimen]{Matrices de confusión por régimen
+  de evaluación: de la diagonal casi perfecta del régimen confundido al colapso
+  e inversión en LODO y a la dispersión propia del azar en la validación
+  intra-dominio.}
+  \label{fig:confmat}
+\end{figure}
+
+La síntesis gráfica (Figuras~\ref{fig:aucsummary} y~\ref{fig:confmat}) confirma
+la misma narrativa: el desplome del AUC entre regímenes y la transición de una
+matriz de confusión diagonal a una dispersa. En conjunto, los resultados
+sostienen la tesis del trabajo: el rendimiento aparente de la clasificación
+tumor/no-tumor sobre el pool multi-fuente era \textbf{íntegramente atribuible al
+\emph{confound} dominio$\leftrightarrow$clase}, y no a la capacidad de detectar
+lesión. La aportación del trabajo no es, por tanto, un clasificador desplegable,
+sino el \textbf{protocolo de auditoría} que permite diagnosticar este modo de
+fallo de forma reproducible.

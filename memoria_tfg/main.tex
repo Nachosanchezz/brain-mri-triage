@@ -41,7 +41,7 @@
 % ESCRIBE UN BREVE RESUMEN (20 LÍNEAS) PARA LA PÁGINA 1
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \resumen{
-La creciente carga asistencial en radiología motiva el desarrollo de sistemas de priorización (triaje) automática de las resonancias con hallazgos urgentes, como las masas tumorales. Este trabajo aborda la clasificación binaria tumor/no tumor en RM cerebral con una red convolucional 3D (CNN 3D) entrenada sobre datos públicos multi-fuente (BraTS, UPENN-GBM, IXI y NKI Rockland). El modelo alcanza un rendimiento casi perfecto (AUC = 0.9999; sensibilidad 0.994; especificidad 1.000), pero una auditoría lo desmonta: un \textit{baseline} trivial de intensidad, sin red neuronal, también logra AUC = 1.0000; fuera de dominio (\textit{leave-one-dataset-out}) el AUC cae a 0.6236 y 0.2012 (inversión de signo); y en una cohorte de un solo escáner la CNN rinde al azar (AUC = 0.4036; IC95\% [0.21, 0.62]). El rendimiento aparente obedece a un \textit{confound} dominio-clase (\textit{shortcut learning}), no a detección clínica. Se discuten las condiciones para un triaje radiológico válido con datos públicos multi-fuente.
+La creciente carga asistencial en radiología motiva el desarrollo de sistemas de priorización (triaje) automática de las resonancias con hallazgos urgentes, como las masas tumorales. Este trabajo aborda la clasificación binaria tumor/no-tumor en RM cerebral con una red convolucional 3D (CNN 3D) entrenada sobre datos públicos multi-fuente (BraTS, UPENN-GBM, IXI y NKI Rockland). El modelo alcanza un rendimiento casi perfecto (AUC = 0,9999; sensibilidad 0,9943; especificidad 1,000), pero una auditoría lo desmonta: un \emph{baseline} trivial de intensidad, sin red neuronal, también logra AUC = 1,0000; fuera de dominio (\emph{leave-one-dataset-out}) el AUC cae a 0,6236 y 0,2012 (inversión de signo); y en una cohorte de un solo escáner la CNN rinde al azar (AUC = 0,4036; IC95\% [0,213; 0,623]). El rendimiento aparente obedece a un \emph{confound} dominio$\leftrightarrow$clase (\emph{shortcut learning}), no a detección clínica. Se discuten las condiciones para un triaje radiológico válido con datos públicos multi-fuente.
 }
 
 \metadatos  % Incluir metadatos en el PDF generado
@@ -95,6 +95,11 @@ Este trabajo es para todos vosotros, que me habéis ayudado a llegar hasta aquí
 
 \listoffigures
 \listoftables
+
+% TEMPORAL: \nocite{*} fuerza que aparezcan TODAS las entradas de
+% bibliography.bib aunque aún no las cites. Bórralo cuando empieces a
+% citar con \cite{clave} para que solo salgan las referencias usadas.
+%\nocite{*}  % desactivado para la entrega final: la bibliografía lista solo las referencias citadas
 \printbibliography
 
 \end{document}

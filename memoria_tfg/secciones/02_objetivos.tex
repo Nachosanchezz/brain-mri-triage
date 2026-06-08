@@ -1,8 +1,52 @@
 \chapter{Objetivos}
-% TODO: redactar capítulo de objetivos
 
 \section{Objetivo general}
-% TODO
+
+El objetivo general de este trabajo es \textbf{auditar la validez del rendimiento}
+de un clasificador binario tumor/no-tumor basado en una red convolucional 3D y
+entrenado con resonancia magnética cerebral pública multi-fuente, determinando si
+dicho rendimiento refleja la detección de lesión o la explotación de un
+\emph{confound} dominio$\leftrightarrow$clase, y \textbf{proponer un protocolo de
+auditoría reproducible} que permita diagnosticar este modo de fallo en sistemas
+análogos.
+
+El trabajo no persigue, por tanto, entregar una herramienta de triaje
+desplegable, sino caracterizar de forma rigurosa el aprendizaje espurio que puede
+surgir al combinar datasets públicos en los que la clase coincide con la
+procedencia. El clasificador es el objeto de estudio de la auditoría, no su
+producto final.
 
 \section{Objetivos específicos}
-% TODO
+
+Del objetivo general se derivan los siguientes objetivos específicos, alineados
+con el desarrollo de los capítulos posteriores:
+
+\begin{enumerate}
+  \item \textbf{Implementar un pipeline 3D reproducible} para la clasificación de
+  RM cerebral multi-fuente, que comprenda un preprocesado homogéneo de todas las
+  cohortes, la arquitectura de la CNN 3D y una partición a nivel de sujeto con
+  semillas fijas (capítulos~4 y~5).
+
+  \item \textbf{Medir, de forma neutra, el rendimiento aparente} del clasificador
+  en el régimen de validación interna sobre el pool multi-fuente, tomándolo como
+  punto de partida que ha de auditarse y no como un logro a alcanzar
+  (capítulos~6 y~7).
+
+  \item \textbf{Auditar la validez de ese rendimiento} mediante una cadena de
+  pruebas anti-confounding: un baseline trivial de intensidad, la validación
+  cruzada por dominio (\emph{leave-one-dataset-out}), la validación intra-dominio
+  sobre una cohorte de un solo escáner y el análisis del espacio latente
+  (capítulos~6 y~7).
+
+  \item \textbf{Descartar explicaciones alternativas} del rendimiento ---la fuga de
+  información por partición y la presencia de duplicados--- para aislar el confound
+  de dominio como causa (capítulos~6 y~7).
+
+  \item \textbf{Caracterizar el confound dominio$\leftrightarrow$clase} y su
+  mecanismo de aprendizaje espurio, explicando por qué se trata de un sesgo
+  estructural ligado a la composición de los datos (capítulos~7 y~8).
+
+  \item \textbf{Derivar recomendaciones metodológicas} para el diseño y la
+  evaluación de estudios con datos públicos multi-fuente, transferibles a
+  problemas análogos (capítulo~8).
+\end{enumerate}

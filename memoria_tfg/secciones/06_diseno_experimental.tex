@@ -1,23 +1,280 @@
 \chapter{Diseño experimental y protocolo de validación}
-% TODO: redactar capítulo de diseño experimental
+
+Este capítulo describe el \emph{diseño} de los experimentos y el \emph{protocolo}
+de validación: las métricas elegidas y su justificación, el esquema de
+partición, las hipótesis que se contrastan y el tratamiento estadístico. No se
+reportan aquí valores numéricos de rendimiento ---área bajo la curva,
+sensibilidad, especificidad o figuras---, que se presentan en el capítulo de
+resultados. La estructura del capítulo refleja la idea central del trabajo: una
+única medida de rendimiento interno no basta para validar un sistema, por lo que
+se articula un protocolo de auditoría en cadena que somete ese rendimiento a
+pruebas sucesivas.
 
 \section{Métricas de evaluación y análisis operativo}
-% TODO
+
+La métrica primaria es el \textbf{área bajo la curva ROC} (AUC), que mide la
+capacidad de ordenación del clasificador con independencia del umbral de
+decisión y se calcula sobre las probabilidades de la clase positiva (sigmoide
+del logit). Como métricas secundarias y complementarias se reportan el área bajo
+la curva de precisión-exhaustividad (PR-AUC), la sensibilidad, la especificidad,
+la \emph{balanced accuracy} (media de sensibilidad y especificidad), la
+exactitud, la precisión, el valor predictivo negativo, el F1 y la matriz de
+confusión a umbral $0{,}5$. La Tabla~\ref{tab:metricas} resume el papel de cada
+una.
+
+\begin{table}[ht]
+  \centering
+  \caption[Métricas de evaluación y su papel]{Métricas de evaluación, su papel
+  en el análisis y su lectura operativa en el contexto de triaje.}
+  \label{tab:metricas}
+  \begin{tabular}{l l l}
+    \hline
+    \textbf{Métrica} & \textbf{Papel} & \textbf{Lectura} \\
+    \hline
+    AUC-ROC                & Primaria      & Discriminación global, independiente del umbral \\
+    PR-AUC                 & Secundaria    & Rendimiento sobre la clase positiva \\
+    Sensibilidad           & Operativa     & Fracción de tumores detectados (prioritaria en triaje) \\
+    Especificidad          & Operativa     & Fracción de sanos correctamente clasificados \\
+    Balanced accuracy      & Secundaria    & Media de sen/spe; criterio de umbral \\
+    Exactitud, prec., VPN, F1 & Complementarias & Caracterización a un umbral fijo \\
+    Matriz de confusión @0,5 & Diagnóstica & Recuento TP/FP/TN/FN \\
+    \hline
+  \end{tabular}
+\end{table}
+
+El sistema se calcula además \textbf{por dataset de origen}, lo que permite
+localizar el comportamiento del modelo en cada cohorte. Conviene anticipar una
+particularidad estructural: como cada fuente del pool aporta una sola clase
+(capítulo de materiales), el AUC \emph{intra-dataset} es indefinible; lejos de
+ser un fallo de cálculo, esa imposibilidad de medir discriminación dentro de una
+cohorte es en sí un reflejo de la composición del conjunto.
+
+El \textbf{análisis operativo del umbral} sigue una regla de honestidad
+metodológica: el umbral de decisión nunca se elige sobre el test. Se determina
+sobre el conjunto de validación ---bien maximizando la \emph{balanced accuracy}
+(criterio de Youden), bien fijando un umbral de alta sensibilidad
+(0,90--0,95 según la herramienta), por ser la sensibilidad la magnitud crítica
+en un escenario de priorización--- y solo después se aplica al test. Este
+encuadre operativo es propio de los sistemas de triaje radiológico, en los que
+el objetivo es ordenar la lista de trabajo y no perder hallazgos
+urgentes~\cite{titano2018cranial}; debe subrayarse, no obstante, que la finalidad
+de este trabajo no es desplegar un clasificador, sino auditar la validez de su
+rendimiento aparente.
 
 \section{Validación interna sobre el pool multi-fuente}
-% TODO
+
+El primer régimen de evaluación es la validación interna clásica sobre el pool
+multi-fuente. Los datos se reparten en entrenamiento, validación y test con
+proporciones $70\%$ / $15\%$ / $15\%$, mediante el esquema descrito en el
+capítulo de metodología (estratificación conjunta por \texttt{(dataset, label)}
+y agrupación por sujeto, con semilla $42$). El conjunto de test se mantiene
+reservado y se evalúa una sola vez, con el mejor modelo seleccionado en
+validación.
+
+Este régimen constituye el \textbf{punto de partida anómalo} del trabajo. El
+rendimiento que arroja es, como se verá, aparentemente excelente; pero un
+resultado de esa magnitud en un problema clínicamente difícil no se acepta como
+un logro, sino que se trata como una \emph{anomalía a auditar}. Esa lectura es
+la que motiva el protocolo de las secciones siguientes: en lugar de dar por
+bueno el número interno, se diseña una batería de pruebas para determinar si
+refleja detección de lesión o alguna forma de fuga metodológica.
 
 \section{Protocolo de auditoría de validez experimental}
-% TODO
+
+La validación interna de la sección anterior es necesaria pero insuficiente:
+una AUC interna alta es compatible tanto con un detector genuino como con un
+modelo que explota una correlación espuria entre la etiqueta y una variable de
+molestia. Este fenómeno, por el cual una red aprende un atajo en lugar de la
+señal pretendida, está bien documentado en aprendizaje
+profundo~\cite{geirhos2020shortcut} y, de forma específica, en imagen médica:
+modelos que aparentaban detectar neumonía o COVID-19 en radiografía resultaron
+apoyarse en marcadores de procedencia o de adquisición en lugar de en signos
+patológicos~\cite{zech2018pneumonia,degrave2021shortcuts}, y los efectos de
+escáner en datos multicéntricos son una fuente reconocida de este tipo de
+sesgo~\cite{glocker2019scanner,castro2020causality}.
+
+Para discernir entre estas posibilidades se diseña un \textbf{protocolo de
+auditoría en cadena}, en el que cada eslabón pone a prueba una explicación
+alternativa del rendimiento observado: (1) un \emph{baseline} trivial de
+intensidad; (2) validación cruzada por dominio (\emph{leave-one-dataset-out});
+(3) validación intra-dominio con ambas clases del mismo escáner; (4) análisis
+del espacio latente; y, en paralelo, (5) el descarte de fugas por partición y
+por duplicados. La Tabla~\ref{tab:protocolo} enuncia las hipótesis competidoras
+y qué se observaría en cada prueba bajo cada explicación.
+
+\begin{table}[ht]
+  \centering
+  \caption[Hipótesis y pruebas del protocolo de auditoría]{Hipótesis
+  competidoras sobre el origen del rendimiento y prueba de diseño que las
+  contrasta. La última columna describe qué se observaría, no el resultado
+  obtenido.}
+  \label{tab:protocolo}
+  \begin{tabular}{p{3.4cm} p{4.2cm} p{4.6cm}}
+    \hline
+    \textbf{Hipótesis} & \textbf{Prueba de diseño} & \textbf{Qué se observaría} \\
+    \hline
+    Confound dominio$\leftrightarrow$clase &
+    \emph{Baseline} de intensidad y análisis del latente &
+    Si se cumple, un modelo trivial separaría las clases y el latente agruparía por procedencia \\
+    Fuga por partición &
+    Auditoría de solapamiento de sujetos entre particiones &
+    Si se cumple, habría sujetos compartidos entre entrenamiento y test \\
+    Duplicados exactos &
+    Hash SHA-1 de los volúmenes cruzando particiones &
+    Si se cumple, aparecerían volúmenes idénticos en particiones distintas \\
+    Detección genuina de tumor &
+    Generalización cross-dataset e intra-dominio &
+    Si se cumple, el rendimiento se mantendría fuera de dominio y dentro de un mismo escáner \\
+    \hline
+  \end{tabular}
+\end{table}
 
 \section{Baseline trivial sobre estadísticos de intensidad}
-% TODO
 
-\section{Validación cruzada por dominio leave-one-dataset-out}
-% TODO
+El primer eslabón del protocolo es un \textbf{baseline trivial} cuyo propósito
+es establecer una cota: cuánta de la separación entre clases puede explicarse
+sin red neuronal ni información anatómica, usando solo estadísticos groseros de
+intensidad. Cada volumen se reduce a descriptores no clínicos calculados sobre
+el tejido: la fracción de vóxeles no nulos (una huella directa de la extracción
+craneal), la media, la desviación típica y los percentiles 1, 25, 50, 75 y 99 de
+la intensidad. Esto produce \textbf{16 características en el pool} (ocho por cada
+modalidad, T1 y T2) y \textbf{8 en la cohorte intra-dominio} (T1 únicamente).
+
+Sobre esas características se entrenan dos clasificadores sencillos, una
+regresión logística (con estandarización previa) y un \emph{random forest} de
+300 árboles, implementados con scikit-learn~\cite{pedregosa2011sklearn}. El
+entrenamiento emplea una submuestra balanceada del conjunto de entrenamiento
+(aproximadamente 150 estudios por dataset, semilla $0$) y la evaluación se
+realiza sobre el conjunto de test completo. La lógica del diseño es directa: si
+un modelo lineal trivial sobre intensidad separa las clases, entonces la señal
+discriminante es de bajo nivel ---una firma de adquisición o de preprocesado---
+y no la anatomía de la lesión, lo que constituiría evidencia del confound de
+dominio. Como contraste interno se entrena además un \textbf{clasificador del
+dataset de origen} (cuatro clases) sobre las mismas características: si el origen
+es trivialmente identificable, la firma de procedencia está efectivamente
+presente en los píxeles.
+
+\subsection{Verificaciones complementarias de fuga}
+
+Junto al \emph{baseline} de intensidad, y para descartar explicaciones
+alternativas del rendimiento, el mismo procedimiento incorpora dos
+verificaciones. La primera busca \textbf{duplicados exactos} calculando un hash
+SHA-1 de los volúmenes (T1 y T2) de cada estudio y comprobando si algún hash
+aparece en más de una partición; su presencia indicaría fuga por repetición de
+muestras entre entrenamiento y test. La segunda comprueba formalmente la
+relación \texttt{label}\,$\equiv$\,\texttt{dataset}, es decir, qué etiquetas
+toma cada cohorte. Estas verificaciones, junto con la auditoría de solapamiento
+de sujetos descrita en el capítulo de metodología, permiten aislar el confound
+de dominio de otras fuentes de fuga (partición y duplicados), que se tratan así
+como hipótesis explícitamente contrastadas.
+
+\section{Validación cruzada por dominio \emph{leave-one-dataset-out}}
+
+El segundo eslabón evalúa la \textbf{generalización fuera de dominio}. Bajo el
+esquema \emph{leave-one-dataset-out} (LODO) se entrena con un subconjunto de
+datasets y se evalúa en otros nunca vistos durante el entrenamiento,
+manteniendo intactos el modelo y todos los hiperparámetros (la configuración
+\texttt{train\_lodo.yaml} es idéntica a la principal salvo en el origen de la
+partición, capítulo de metodología), de modo que la comparación entre el régimen
+interno y el cross-dataset sea estrictamente \emph{apples-to-apples}.
+
+Las particiones por dataset, generadas específicamente para este régimen,
+agrupan un dataset de tumor con uno de sano para entrenamiento y reservan los
+otros dos para test; la partición interna entrenamiento/validación se hace por
+sujeto con $\texttt{val\_ratio}=0{,}15$ y semilla $42$. La
+Tabla~\ref{tab:lodo} recoge las cuatro configuraciones. La red convolucional se
+evalúa en las dos direcciones principales (A y B); el \emph{baseline} trivial de
+intensidad se ejecuta además en las configuraciones C y D y frente a una
+referencia de mezcla aleatoria, lo que permite cartografiar el comportamiento
+cross-dataset también para el modelo lineal.
+
+\begin{table}[ht]
+  \centering
+  \caption[Configuraciones de validación cruzada LODO]{Configuraciones
+  \emph{leave-one-dataset-out}. Cada fila empareja datasets de tumor y sano para
+  entrenamiento y reserva el resto para test.}
+  \label{tab:lodo}
+  \begin{tabular}{c l l l}
+    \hline
+    \textbf{Config.} & \textbf{Entrenamiento + validación} & \textbf{Test} & \textbf{Modelos} \\
+    \hline
+    A & BraTS + IXI          & UPENN + NKI ($n=1110$) & CNN y \emph{baseline} \\
+    B & UPENN + NKI          & BraTS + IXI ($n=1157$) & CNN y \emph{baseline} \\
+    C & BraTS + NKI          & UPENN + IXI            & \emph{baseline} \\
+    D & UPENN + IXI          & BraTS + NKI            & \emph{baseline} \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Los tamaños indicados para los conjuntos de test de A y B (1110 = 587 + 523 de
+UPENN y NKI; 1157 = 580 + 577 de BraTS e IXI) son una propiedad de la
+partición, no un resultado. La \textbf{hipótesis} es que un detector genuino de
+tumor generalizaría a cohortes nuevas: bajo detección real, el rendimiento se
+mantendría en test; bajo un detector de firma de dominio, en cambio, cabría
+esperar que cayese o incluso que invirtiera su regla de decisión al cambiar de
+cohortes. La interpretación cuantitativa de cada desenlace se aborda en el
+capítulo de resultados.
 
 \section{Validación intra-dominio BTC\_preop}
-% TODO
+
+El eslabón decisivo del protocolo es la \textbf{validación intra-dominio}, la
+única que permite evaluar la detección de tumor con el confound de dominio
+controlado por construcción. Para ello se emplea la cohorte BTC\_preop
+(OpenNeuro \texttt{ds001226}, Ghent, licencia CC0)~\cite{aerts2022btcpreop}, en
+la que tumor y control proceden del \emph{mismo} escáner. La cohorte consta de
+36 sujetos (25 con tumor y 11 controles); el etiquetado se deriva del
+identificador (\texttt{sub-CON*} como control, \texttt{sub-PAT*} como paciente),
+y el preprocesado es idéntico al del resto de datasets (extracción craneal,
+reorientación RAS, remuestreo a 1\,mm\textsuperscript{3}, ajuste a
+192\,$\times$\,224\,$\times$\,192 y normalización \emph{z-score}), con la
+salvedad de que \texttt{ds001226} solo aporta T1, por lo que el experimento es
+de un único canal.
+
+El tamaño muestral (n=36) impide una partición convencional, de modo que se
+adopta \textbf{validación cruzada $k$-fold con $k=5$}, estratificada por etiqueta
+y a nivel de sujeto. Se evalúan dos modelos: la \textbf{misma arquitectura} de la
+red convolucional, adaptada a una entrada de un canal, y el \emph{baseline}
+trivial de intensidad (ocho características de T1). En el caso de la red, cada
+pliegue se entrena un número \emph{fijo} de épocas (20) sin parada anticipada,
+una decisión deliberada para no contaminar la selección del modelo con el
+pliegue de test; se conservan el optimizador AdamW (tasa de aprendizaje
+$5\times10^{-5}$, decaimiento $1\times10^{-3}$), el planificador coseno, el lote
+unitario y un peso de clase positiva calculado en cada pliegue. Las predicciones
+de los cinco pliegues se agregan y se estima el AUC global con su intervalo de
+confianza al 95\,\% mediante \emph{bootstrap} de 2000 remuestreos.
+
+Es esencial fijar de antemano el \textbf{alcance interpretativo} de este
+experimento. Con $n=36$ y unos intervalos de confianza necesariamente anchos, el
+diseño solo habilita a afirmar, en su caso, que \emph{no se observa señal por
+encima del azar}; en ningún caso permite concluir que el modelo «no detecta
+tumor», ni interpretar un AUC inferior a $0{,}5$ como una supuesta
+«anti-detección». Esta cautela se aplicará de forma estricta en la lectura de
+los resultados.
 
 \section{Análisis del espacio latente e interpretabilidad}
-% TODO
+
+El último eslabón examina \emph{qué} codifica internamente el modelo del régimen
+confundido. Para cada volumen del pool se extrae el \textbf{vector latente de 96
+dimensiones} ---la salida del extractor de características tras el
+\texttt{AdaptiveAvgPool3d}, anterior al clasificador--- y se proyecta a dos
+dimensiones mediante PCA y t-SNE~\cite{maaten2008tsne}. La compacidad del
+agrupamiento se cuantifica con el coeficiente \emph{silhouette}, calculado tanto
+por \textbf{etiqueta} como por \textbf{dataset}, lo que permite contrastar si el
+latente se organiza por clase clínica o por procedencia.
+
+Dado que en el pool la clase coincide con el dataset, el \emph{silhouette}
+global no basta para separar ambas explicaciones; por ello se añaden
+\textbf{sondas intra-clase}. Restringiendo el análisis a sujetos de una misma
+clase, se entrena un clasificador (regresión logística con validación cruzada)
+para distinguir cohortes que comparten clase: IXI frente a NKI (ambos sanos) y
+BraTS frente a UPENN (ambos tumor); y se entrena un \textbf{clasificador del
+dataset de origen} (cuatro clases) directamente sobre los embeddings. La
+\textbf{hipótesis} es que el espacio latente codifica la procedencia del estudio
+con independencia de la presencia de lesión: de cumplirse, sería posible
+identificar la cohorte de origen incluso entre sujetos de idéntica clase clínica.
+
+Finalmente, se incluye un análisis de \textbf{Grad-CAM}~\cite{selvaraju2017gradcam}
+sobre la red, con una hipótesis preestablecida sobre dónde se concentraría la
+atención del modelo confundido. Este análisis se considera \emph{exploratorio y
+no concluyente} y se reporta únicamente en el anexo, sin extraer de él
+afirmaciones sobre la capacidad de detección.

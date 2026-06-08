@@ -1,0 +1,105 @@
+{
+  "target_spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "target_shape": [
+    192,
+    224,
+    192
+  ],
+  "total": 2267,
+  "positives": 1167,
+  "negatives": 1100,
+  "unknown_label": 0,
+  "datasets": {
+    "ixi": {
+      "total": 577,
+      "labels": {
+        "0": 577,
+        "1": 0,
+        "unknown": 0
+      },
+      "output_dirs": {
+        "negatives": 577
+      },
+      "examples": [
+        "negatives/IXI002-Guys-0828.npz",
+        "negatives/IXI012-HH-1211.npz",
+        "negatives/IXI013-HH-1212.npz",
+        "negatives/IXI014-HH-1236.npz",
+        "negatives/IXI015-HH-1258.npz"
+      ]
+    },
+    "nki_rockland": {
+      "total": 523,
+      "labels": {
+        "0": 523,
+        "1": 0,
+        "unknown": 0
+      },
+      "output_dirs": {
+        "negatives": 523
+      },
+      "examples": [
+        "negatives/NKI-A00008326-BAS2.npz",
+        "negatives/NKI-A00028339-BAS2.npz",
+        "negatives/NKI-A00028753-BAS2.npz",
+        "negatives/NKI-A00030947-BAS2.npz",
+        "negatives/NKI-A00030989-BAS2.npz"
+      ]
+    },
+    "brats": {
+      "total": 580,
+      "labels": {
+        "0": 0,
+        "1": 580,
+        "unknown": 0
+      },
+      "output_dirs": {
+        "positives": 580
+      },
+      "examples": [
+        "positives/BraTS2021_00000.npz",
+        "positives/BraTS2021_00002.npz",
+        "positives/BraTS2021_00003.npz",
+        "positives/BraTS2021_00005.npz",
+        "positives/BraTS2021_00006.npz"
+      ]
+    },
+    "upenn": {
+      "total": 587,
+      "labels": {
+        "0": 0,
+        "1": 587,
+        "unknown": 0
+      },
+      "output_dirs": {
+        "positives": 587
+      },
+      "examples": [
+        "positives/UPENN-GBM-00001.npz",
+        "positives/UPENN-GBM-00002.npz",
+        "positives/UPENN-GBM-00003.npz",
+        "positives/UPENN-GBM-00004.npz",
+        "positives/UPENN-GBM-00005.npz"
+      ]
+    }
+  },
+  "output_dirs": {
+    "negatives": 1100,
+    "positives": 1167
+  },
+  "last_run": {
+    "nki_rockland": {
+      "label": 0,
+      "found": 523,
+      "written": 518,
+      "existing": 5,
+      "available": 523,
+      "skipped": 0,
+      "errors": []
+    }
+  }
+}

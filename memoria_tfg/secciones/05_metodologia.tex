@@ -1,20 +1,233 @@
 \chapter{Metodología}
-% TODO: redactar capítulo de metodología
+
+Este capítulo describe el método de modelado: la carga de los volúmenes y su
+recorte de entrada, la arquitectura de la red convolucional 3D, la función de
+pérdida y el esquema de optimización, el aumento de datos, la estrategia de
+partición a nivel de sujeto y el entorno de cómputo. Todos los valores que se
+indican proceden del código fuente o de los ficheros de configuración del
+proyecto, y son comunes a los distintos regímenes de evaluación, de modo que las
+diferencias observadas entre ellos no se deban a cambios en el método.
 
 \section{Preprocesado homogéneo}
-% TODO
+
+El capítulo anterior fijó el preprocesado común a todas las cohortes
+(extracción cerebral, reorientación a RAS, remuestreo a 1\,mm\textsuperscript{3},
+ajuste a \mbox{192\,$\times$\,224\,$\times$\,192} vóxeles y normalización
+\emph{z-score} sobre el tejido), cuyo resultado es, para cada estudio, un fichero
+\texttt{.npz} con los volúmenes T1 y T2 ya normalizados. La metodología de
+modelado parte de ese punto.
+
+En el momento de la carga, cada volumen T1 y T2 se apila en un tensor de dos
+canales y se ajusta a la geometría de entrada de la red mediante un
+\textbf{recorte centrado a 128\,$\times$\,160\,$\times$\,128} vóxeles. Conviene
+distinguir este recorte del tamaño de preprocesado: el preprocesado deja todos
+los volúmenes en una rejilla común de 192\,$\times$\,224\,$\times$\,192, y es en
+la carga donde se recorta a 128\,$\times$\,160\,$\times$\,128 para reducir el
+coste de memoria de las convoluciones 3D conservando la región cerebral central.
+Si un volumen fuera menor que la geometría objetivo en algún eje, se rellena de
+forma centrada con ceros. Este recorte se aplica de forma centrada tanto en
+entrenamiento como en validación y test, lo que elimina cualquier discrepancia
+sistemática entre particiones por el modo de recorte.
+
+El calificativo de \emph{homogéneo} es deliberado: el mismo preprocesado y la
+misma transformación de carga se aplican a las cuatro cohortes del pool y, sin
+más cambio que el número de canales de entrada, a la cohorte intra-dominio. Así,
+ninguna diferencia de resultados entre datasets puede atribuirse a un
+tratamiento distinto de los datos.
 
 \section{Arquitectura del modelo CNN 3D}
-% TODO
+
+El modelo, denominado \texttt{BrainTumorCNN3D}, es una red convolucional 3D
+compacta para clasificación binaria. Recibe un tensor de dos canales (T1 y T2) y
+produce un único logit, cuya sigmoide se interpreta como probabilidad de la
+clase tumor. Consta de un extractor de características con cuatro bloques
+convolucionales y un clasificador denso.
+
+Cada bloque convolucional (\texttt{ConvBlock3D}) encadena dos convoluciones 3D
+de núcleo $3\times3\times3$ con relleno 1 y sin sesgo, cada una seguida de
+normalización y activación ReLU, y un \emph{dropout} espacial al final del
+bloque. El número de canales se duplica de bloque en bloque a partir de un ancho
+base de 12: $12 \rightarrow 24 \rightarrow 48 \rightarrow 96$. Entre bloques
+consecutivos se intercala un \texttt{MaxPool3d} de factor 2, que reduce la
+resolución espacial a la mitad en cada eje; tras el último bloque, un
+\texttt{AdaptiveAvgPool3d} colapsa la dimensión espacial a $1\times1\times1$ y
+produce un vector de \textbf{96 dimensiones}, que constituye la representación
+latente del estudio. El clasificador aplica sobre ese vector una capa lineal
+$96 \rightarrow 96$ con ReLU y \emph{dropout}, y una capa lineal final
+$96 \rightarrow 1$. La Tabla~\ref{tab:arquitectura} resume la estructura.
+
+\begin{table}[ht]
+  \centering
+  \caption[Arquitectura de \texttt{BrainTumorCNN3D}]{Arquitectura de \texttt{BrainTumorCNN3D} con la geometría de entrada
+  de 2\,$\times$\,128\,$\times$\,160\,$\times$\,128. Cada bloque convolucional
+  contiene dos convoluciones $3\times3\times3$ con GroupNorm y ReLU; el
+  \emph{dropout} indicado es el \texttt{Dropout3d} aplicado al final del bloque.}
+  \label{tab:arquitectura}
+  \begin{tabular}{l l c}
+    \hline
+    \textbf{Etapa} & \textbf{Operación} & \textbf{Canales / dim.} \\
+    \hline
+    Entrada            & Tensor T1+T2                       & 2 \\
+    Bloque 1           & ConvBlock3D ($dropout=0{,}0$)      & 12 \\
+                       & MaxPool3d (2)                      & 12 \\
+    Bloque 2           & ConvBlock3D ($dropout=0{,}125$)    & 24 \\
+                       & MaxPool3d (2)                      & 24 \\
+    Bloque 3           & ConvBlock3D ($dropout=0{,}25$)     & 48 \\
+                       & MaxPool3d (2)                      & 48 \\
+    Bloque 4           & ConvBlock3D ($dropout=0{,}25$)     & 96 \\
+    \emph{Pooling}     & AdaptiveAvgPool3d (1)              & 96 (embedding) \\
+    \hline
+    Clasificador       & Linear $96\!\rightarrow\!96$ + ReLU + Dropout(0,25) & 96 \\
+                       & Linear $96\!\rightarrow\!1$        & 1 (logit) \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Una decisión de diseño relevante es el uso de \textbf{normalización por grupos}
+(GroupNorm, con 8 grupos) en lugar de la habitual normalización por lotes
+(BatchNorm)~\cite{wu2018groupnorm}. El motivo es directo: con un tamaño de lote
+de un único estudio, los estadísticos por lote de la BatchNorm son muy ruidosos
+y sus estadísticos acumulados no convergen, lo que en la práctica genera una
+brecha grande entre entrenamiento y validación; la GroupNorm normaliza por
+grupos de canales dentro de cada muestra y es estable con lote unitario.
+
+El modelo es deliberadamente pequeño: en la configuración de dos canales tiene
+\textbf{504\,553} parámetros entrenables (504\,229 en la variante de un solo
+canal). Esa misma arquitectura, sin cambios salvo en el número de canales de
+entrada (un canal en lugar de dos), se reutiliza en el experimento intra-dominio
+descrito en capítulos posteriores, de manera que la comparación entre regímenes
+mantiene constante el modelo.
 
 \section{Función de pérdida, optimización e hiperparámetros}
-% TODO
 
-\section{Data augmentation}
-% TODO
+El problema se entrena como clasificación binaria con una sola salida. La función
+de pérdida es la entropía cruzada binaria sobre el logit
+(\texttt{BCEWithLogitsLoss}), que combina de forma numéricamente estable la
+sigmoide y la entropía cruzada. Se emplea un peso de clase positiva
+$\texttt{pos\_weight}=1{,}0$, es decir, sin reponderar las clases: el pool está
+aproximadamente equilibrado y un peso unitario elimina la hipótesis de que un
+sesgo de la pérdida favoreciera artificialmente la clase tumor.
+
+La optimización se realiza con \textbf{AdamW}~\cite{loshchilov2019adamw}, con tasa
+de aprendizaje $5\times10^{-5}$ y decaimiento de pesos $1\times10^{-3}$. La tasa
+de aprendizaje sigue una planificación de tipo coseno
+(\texttt{CosineAnnealingLR}) a lo largo de las épocas, lo que permite un ajuste
+fino al final del entrenamiento. Los hiperparámetros completos se recogen en la
+Tabla~\ref{tab:hiperparametros}.
+
+\begin{table}[ht]
+  \centering
+  \caption[Hiperparámetros de entrenamiento]{Hiperparámetros de entrenamiento (tomados de \texttt{configs/train\_3d.yaml}
+  y del bucle de entrenamiento).}
+  \label{tab:hiperparametros}
+  \begin{tabular}{l l}
+    \hline
+    \textbf{Hiperparámetro} & \textbf{Valor} \\
+    \hline
+    Optimizador                  & AdamW \\
+    Tasa de aprendizaje          & $5\times10^{-5}$ \\
+    Decaimiento de pesos         & $1\times10^{-3}$ \\
+    Planificador                 & CosineAnnealingLR ($T_{\max}=40$) \\
+    Épocas máximas               & 40 \\
+    Tamaño de lote               & 1 \\
+    Función de pérdida           & BCEWithLogitsLoss ($\texttt{pos\_weight}=1{,}0$) \\
+    Precisión mixta (AMP)        & desactivada \\
+    Paciencia (early stopping)   & 10 \\
+    Criterio de selección        & balanced accuracy (val) con $\text{sen}\geq0{,}80$ \\
+    Semilla                      & 42 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+La \textbf{selección del modelo} merece detalle, por su relevancia metodológica.
+En cada época se evalúa la validación y se calcula la \emph{balanced accuracy}
+como media de sensibilidad y especificidad. Solo se guarda como mejor modelo el
+checkpoint que mejora esa métrica \emph{y} mantiene una sensibilidad de
+validación de al menos $0{,}80$; esta restricción evita conservar modelos
+triviales (por ejemplo, uno que clasifique todo como sano, con especificidad
+alta pero sensibilidad nula). El entrenamiento se detiene anticipadamente si
+transcurren 10 épocas sin mejora bajo ese criterio. El \textbf{conjunto de test
+se evalúa una única vez} al final, con el mejor checkpoint seleccionado en
+validación, de modo que no interviene en la selección del modelo ni en el ajuste
+de hiperparámetros.
+
+\section{Aumento de datos}
+
+El aumento de datos se aplica exclusivamente al conjunto de entrenamiento; la
+validación y el test se procesan sin alteración. Se combinan transformaciones
+geométricas y de intensidad:
+
+\begin{itemize}
+  \item \textbf{Reflexiones espaciales} en cada uno de los tres ejes, con
+  probabilidad $0{,}5$ por eje, aplicadas de forma compartida a los canales T1 y
+  T2 para preservar su correspondencia.
+  \item \textbf{Corrección gamma} con factor muestreado uniformemente en
+  $[0{,}8;\ 1{,}25]$ (probabilidad $0{,}5$), preservando el signo de los valores
+  \emph{z-score}.
+  \item \textbf{Ruido gaussiano} de baja amplitud (desviación típica $0{,}03$,
+  probabilidad $0{,}5$).
+\end{itemize}
+
+Las transformaciones de intensidad (gamma y ruido) se aplican \textbf{únicamente
+sobre los vóxeles no nulos}, es decir, sobre la máscara de cerebro resultante de
+la extracción craneal, y no sobre el fondo. Esta decisión es un intento
+metodológico explícito de mitigar la firma de dominio: el objetivo es forzar al
+modelo a apoyarse en el \emph{contraste relativo} del tejido y reducir su
+dependencia del brillo absoluto característico de cada cohorte, evitando además
+inyectar señal en el fondo (relevante en una de las cohortes, que arrastra un
+borde de fondo no nulo). Como se discutirá más adelante, esta mitigación a nivel
+de aumento de datos no basta para neutralizar un confound que está presente en
+la propia composición del conjunto.
 
 \section{Estrategia de partición a nivel de sujeto}
-% TODO
+
+La partición en entrenamiento, validación y test se realiza a nivel de
+\emph{sujeto}, no de fichero, mediante una doble salvaguarda. En primer lugar,
+los estudios se agrupan por \texttt{subject\_id} antes de repartirse, de manera
+que todos los ficheros de un mismo sujeto caen \emph{por construcción} en la
+misma partición; esto previene la fuga de información que se produciría si un
+sujeto con varias adquisiciones (por ejemplo, distintas sesiones de una misma
+cohorte) apareciese simultáneamente en entrenamiento y en test. En segundo
+lugar, el reparto se estratifica conjuntamente por \texttt{(dataset, label)},
+para que ningún dataset quede sub- o sobre-representado en validación o test por
+efecto del azar. Las proporciones son $70\%$ / $15\%$ / $15\%$ y el reparto es
+reproducible con semilla $42$.
+
+El proyecto incluye, además, una auditoría específica de la partición que
+comprueba el solapamiento de sujetos entre conjuntos. Conviene subrayar el
+alcance correcto de esta salvaguarda: la partición por sujeto descarta la fuga
+de información \emph{por partición}, pero no neutraliza el confound
+dominio$\leftrightarrow$clase, que es una propiedad de la composición del conjunto (cada cohorte
+aporta una sola clase) y no del modo de repartir los datos. Por ello el split,
+aun siendo correcto, no salva por sí solo la evaluación, lo que motiva los
+diseños experimentales del capítulo siguiente. Para el régimen
+\emph{leave-one-dataset-out}, esta partición aleatoria se sustituye por una
+partición por dataset generada específicamente, como se detalla más adelante.
 
 \section{Entorno computacional y herramientas}
-% TODO
+
+El sistema se implementó en Python con PyTorch como marco de aprendizaje
+profundo~\cite{paszke2019pytorch}. El entrenamiento se ejecutó sobre GPU AMD
+mediante la pila ROCm. Las versiones principales del entorno, fijadas en el
+fichero de dependencias del proyecto, son PyTorch~2.5.1 (compilación
+ROCm~6.2), MONAI~1.5.0, HD-BET~2.0.1, NumPy~2.1.3, nibabel~5.4.2 y
+scikit-learn~1.6.1. La conversión inicial de los estudios en formato DICOM a
+NIfTI, previa al preprocesado, se realizó con dcm2niix~\cite{li2016dcm2niix}.
+
+Para acelerar las convoluciones 3D con tamaño de entrada estable se habilitaron
+el \emph{benchmark} de cuDNN, la aritmética TF32 y el formato de memoria
+\emph{channels-last} 3D; la precisión mixta automática se mantuvo desactivada,
+ya que con lote unitario y GroupNorm la representación en \texttt{float16}
+amplificaba inestabilidades numéricas. La reproducibilidad se sostiene en una
+semilla fija ($42$) para la generación de la partición y el entrenamiento; los
+análisis posteriores que requieren remuestreo (intervalos de confianza por
+\emph{bootstrap} y proyecciones) emplean su propia semilla.
+
+Por último, el régimen \emph{leave-one-dataset-out} se ejecuta con una
+configuración (\texttt{configs/train\_lodo.yaml}) idéntica a la del entrenamiento
+principal salvo en dos detalles: no regenera la partición ---lee la partición por
+dataset preparada aparte--- y escribe en su propio directorio de salida. Mantener
+constantes el modelo y todos los hiperparámetros garantiza que la comparación
+entre el régimen confundido y el cross-dataset sea estrictamente
+\emph{apples-to-apples}, atribuible solo al cambio de partición y no a diferencias
+de método.

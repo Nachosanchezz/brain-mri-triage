@@ -1,61 +1,91 @@
 \babel@toc {spanish}{}\relax 
-\contentsline {chapter}{\numberline {1}Introducción}{4}{chapter.1}%
-\contentsline {section}{\numberline {1.1}Contexto clínico y motivación}{4}{section.1.1}%
-\contentsline {section}{\numberline {1.2}Planteamiento del problema}{4}{section.1.2}%
-\contentsline {section}{\numberline {1.3}De la hipótesis clínica inicial a la auditoría metodológica del modelo}{4}{section.1.3}%
-\contentsline {section}{\numberline {1.4}Objetivos y contribuciones}{4}{section.1.4}%
-\contentsline {section}{\numberline {1.5}Estructura de la memoria}{4}{section.1.5}%
-\contentsline {chapter}{\numberline {2}Objetivos}{5}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Objetivo general}{5}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Objetivos específicos}{5}{section.2.2}%
-\contentsline {chapter}{\numberline {3}Estado del arte}{6}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Diagnóstico por imagen de masas tumorales intracraneales}{6}{section.3.1}%
-\contentsline {section}{\numberline {3.2}RM cerebral y limitaciones del diagnóstico radiológico}{6}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Deep Learning en imagen médica}{6}{section.3.3}%
-\contentsline {section}{\numberline {3.4}Deep Learning aplicado a RM cerebral: enfoques, datasets y retos de generalización}{6}{section.3.4}%
-\contentsline {section}{\numberline {3.5}Sesgo de dominio, shortcut learning y fugas de información en Deep Learning médico}{6}{section.3.5}%
-\contentsline {section}{\numberline {3.6}Sistemas de priorización/triaje en radiología}{6}{section.3.6}%
-\contentsline {chapter}{\numberline {4}Materiales y datos}{7}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Datasets: BraTS, UPENN-GBM, IXI, NKI Rockland y BTC\_preop}{7}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Definición de clases y etiquetado}{7}{section.4.2}%
-\contentsline {section}{\numberline {4.3}Composición del problema: relación entre clase y dataset de origen}{7}{section.4.3}%
-\contentsline {section}{\numberline {4.4}Selección de modalidades T1/T2}{7}{section.4.4}%
-\contentsline {section}{\numberline {4.5}Análisis exploratorio de los datos}{7}{section.4.5}%
-\contentsline {chapter}{\numberline {5}Metodología}{8}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Preprocesado homogéneo}{8}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Arquitectura del modelo CNN 3D}{8}{section.5.2}%
-\contentsline {section}{\numberline {5.3}Función de pérdida, optimización e hiperparámetros}{8}{section.5.3}%
-\contentsline {section}{\numberline {5.4}Data augmentation}{8}{section.5.4}%
-\contentsline {section}{\numberline {5.5}Estrategia de partición a nivel de sujeto}{8}{section.5.5}%
-\contentsline {section}{\numberline {5.6}Entorno computacional y herramientas}{8}{section.5.6}%
-\contentsline {chapter}{\numberline {6}Diseño experimental y protocolo de validación}{9}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Métricas de evaluación y análisis operativo}{9}{section.6.1}%
-\contentsline {section}{\numberline {6.2}Validación interna sobre el pool multi-fuente}{9}{section.6.2}%
-\contentsline {section}{\numberline {6.3}Protocolo de auditoría de validez experimental}{9}{section.6.3}%
-\contentsline {section}{\numberline {6.4}Baseline trivial sobre estadísticos de intensidad}{9}{section.6.4}%
-\contentsline {section}{\numberline {6.5}Validación cruzada por dominio leave-one-dataset-out}{9}{section.6.5}%
-\contentsline {section}{\numberline {6.6}Validación intra-dominio BTC\_preop}{9}{section.6.6}%
-\contentsline {section}{\numberline {6.7}Análisis del espacio latente e interpretabilidad}{9}{section.6.7}%
-\contentsline {chapter}{\numberline {7}Resultados: análisis progresivo de validez del rendimiento aparente}{10}{chapter.7}%
-\contentsline {section}{\numberline {7.1}Rendimiento aparente en el pool multi-fuente}{10}{section.7.1}%
-\contentsline {section}{\numberline {7.2}Decodificabilidad trivial de la etiqueta}{10}{section.7.2}%
-\contentsline {section}{\numberline {7.3}Identificabilidad del dominio}{10}{section.7.3}%
-\contentsline {section}{\numberline {7.4}Generalización fuera de dominio LODO}{10}{section.7.4}%
-\contentsline {section}{\numberline {7.5}Validación intra-dominio BTC\_preop}{10}{section.7.5}%
-\contentsline {section}{\numberline {7.6}Evidencia en el espacio latente y mapas de atención}{10}{section.7.6}%
-\contentsline {section}{\numberline {7.7}Síntesis consolidada de resultados}{10}{section.7.7}%
-\contentsline {chapter}{\numberline {8}Discusión}{11}{chapter.8}%
-\contentsline {section}{\numberline {8.1}Interpretación: confound estructural dominio-clase}{11}{section.8.1}%
-\contentsline {section}{\numberline {8.2}Por qué las métricas casi perfectas no son evidencia clínica}{11}{section.8.2}%
-\contentsline {section}{\numberline {8.3}Viabilidad y condiciones para un triaje radiológico válido}{11}{section.8.3}%
-\contentsline {section}{\numberline {8.4}Comparación con la literatura: shortcut learning, dataset bias y domain shift}{11}{section.8.4}%
-\contentsline {section}{\numberline {8.5}Validez metodológica y reproducibilidad}{11}{section.8.5}%
-\contentsline {section}{\numberline {8.6}Implicaciones para el diseño de estudios con datos públicos multi-fuente}{11}{section.8.6}%
-\contentsline {chapter}{\numberline {9}Conclusiones}{12}{chapter.9}%
-\contentsline {chapter}{\numberline {10}Limitaciones y líneas futuras}{13}{chapter.10}%
-\contentsline {section}{\numberline {10.1}Limitaciones del estudio}{13}{section.10.1}%
-\contentsline {section}{\numberline {10.2}Propuestas de mejora y líneas futuras}{13}{section.10.2}%
-\contentsline {chapter}{\numberline {A}Detalle de preprocesado y configuraciones}{14}{appendix.Alph1}%
-\contentsline {chapter}{\numberline {B}Tabla maestra de resultados y detalle por fold}{15}{appendix.Alph2}%
-\contentsline {chapter}{\numberline {C}Figuras adicionales}{16}{appendix.Alph3}%
-\contentsline {chapter}{\numberline {D}Reproducibilidad: comandos, seeds y entorno}{17}{appendix.Alph4}%
+\contentsline {chapter}{\numberline {1}Introducción}{5}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Contexto clínico y motivación}{5}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Planteamiento del problema}{5}{section.1.2}%
+\contentsline {section}{\numberline {1.3}De la hipótesis clínica inicial a la auditoría metodológica del modelo}{6}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Objetivos y contribuciones}{6}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Estructura de la memoria}{7}{section.1.5}%
+\contentsline {chapter}{\numberline {2}Objetivos}{8}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Objetivo general}{8}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Objetivos específicos}{8}{section.2.2}%
+\contentsline {chapter}{\numberline {3}Estado del arte}{10}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Diagnóstico por imagen de masas tumorales intracraneales}{10}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Relevancia clínica de las masas tumorales intracraneales}{10}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Complejidad diagnóstica y necesidad de detección precoz}{11}{subsection.3.1.2}%
+\contentsline {section}{\numberline {3.2}RM cerebral y limitaciones del diagnóstico radiológico}{11}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Papel de la resonancia magnética en neurooncología}{12}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Información visual relevante y dificultad de interpretación}{12}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Limitaciones del diagnóstico radiológico y papel del radiólogo}{12}{subsection.3.2.3}%
+\contentsline {section}{\numberline {3.3}Deep Learning en imagen médica}{13}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Fundamentos y aplicaciones generales}{13}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Sistemas de apoyo al diagnóstico}{13}{subsection.3.3.2}%
+\contentsline {section}{\numberline {3.4}Deep Learning aplicado a RM cerebral: enfoques, datasets y retos de generalización}{13}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Principales enfoques: segmentación, clasificación y tareas relacionadas}{14}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Datasets públicos y retos de generalización}{14}{subsection.3.4.2}%
+\contentsline {section}{\numberline {3.5}Sesgo de dominio, shortcut learning y fugas de información en Deep Learning médico}{14}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Aprendizaje por atajos y correlaciones espurias}{15}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}Efectos de escáner y cambio de dominio}{15}{subsection.3.5.2}%
+\contentsline {subsection}{\numberline {3.5.3}Fugas de información y validez experimental}{15}{subsection.3.5.3}%
+\contentsline {section}{\numberline {3.6}Sistemas de priorización/triaje en radiología}{16}{section.3.6}%
+\contentsline {chapter}{\numberline {4}Materiales y datos}{17}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Datasets: BraTS, UPENN-GBM, IXI, NKI Rockland y BTC\_preop}{17}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Definición de clases y etiquetado}{18}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Composición del problema: relación entre clase y dataset de origen}{19}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Selección de modalidades T1/T2}{19}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Análisis exploratorio de los datos}{20}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}Preprocesado común}{20}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2}Distribución de intensidades por dataset}{20}{subsection.4.5.2}%
+\contentsline {chapter}{\numberline {5}Metodología}{22}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Preprocesado homogéneo}{22}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Arquitectura del modelo CNN 3D}{23}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Función de pérdida, optimización e hiperparámetros}{24}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Aumento de datos}{25}{section.5.4}%
+\contentsline {section}{\numberline {5.5}Estrategia de partición a nivel de sujeto}{25}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Entorno computacional y herramientas}{26}{section.5.6}%
+\contentsline {chapter}{\numberline {6}Diseño experimental y protocolo de validación}{27}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Métricas de evaluación y análisis operativo}{27}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Validación interna sobre el pool multi-fuente}{28}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Protocolo de auditoría de validez experimental}{28}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Baseline trivial sobre estadísticos de intensidad}{29}{section.6.4}%
+\contentsline {subsection}{\numberline {6.4.1}Verificaciones complementarias de fuga}{30}{subsection.6.4.1}%
+\contentsline {section}{\numberline {6.5}Validación cruzada por dominio \emph {leave-one-dataset-out}}{30}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Validación intra-dominio BTC\_preop}{31}{section.6.6}%
+\contentsline {section}{\numberline {6.7}Análisis del espacio latente e interpretabilidad}{31}{section.6.7}%
+\contentsline {chapter}{\numberline {7}Resultados: análisis progresivo de validez del rendimiento aparente}{33}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Rendimiento aparente en el pool multi-fuente}{33}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Decodificabilidad trivial de la etiqueta}{34}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Identificabilidad del dominio}{34}{section.7.3}%
+\contentsline {section}{\numberline {7.4}Generalización fuera de dominio LODO}{35}{section.7.4}%
+\contentsline {section}{\numberline {7.5}Validación intra-dominio BTC\_preop}{36}{section.7.5}%
+\contentsline {section}{\numberline {7.6}Evidencia en el espacio latente y mapas de atención}{36}{section.7.6}%
+\contentsline {section}{\numberline {7.7}Síntesis consolidada de resultados}{37}{section.7.7}%
+\contentsline {chapter}{\numberline {8}Discusión}{40}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Interpretación: confound estructural dominio$\leftrightarrow $clase}{40}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Por qué las métricas casi perfectas no son evidencia clínica}{41}{section.8.2}%
+\contentsline {section}{\numberline {8.3}Viabilidad y condiciones para un triaje radiológico válido}{41}{section.8.3}%
+\contentsline {section}{\numberline {8.4}Comparación con la literatura: shortcut learning, dataset bias y domain shift}{42}{section.8.4}%
+\contentsline {section}{\numberline {8.5}Validez metodológica y reproducibilidad}{42}{section.8.5}%
+\contentsline {section}{\numberline {8.6}Implicaciones para el diseño de estudios con datos públicos multi-fuente}{43}{section.8.6}%
+\contentsline {chapter}{\numberline {9}Conclusiones}{44}{chapter.9}%
+\contentsline {chapter}{\numberline {10}Limitaciones y líneas futuras}{45}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Limitaciones del estudio}{45}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Propuestas de mejora y líneas futuras}{45}{section.10.2}%
+\contentsline {chapter}{\numberline {A}Detalle de preprocesado y configuraciones}{47}{appendix.Alph1}%
+\contentsline {section}{\numberline {A.1}Pipeline de preprocesado}{47}{section.Alph1.1}%
+\contentsline {section}{\numberline {A.2}Hiperparámetros del entrenamiento principal (pool)}{47}{section.Alph1.2}%
+\contentsline {section}{\numberline {A.3}Variantes: LODO e intra-dominio BTC}{48}{section.Alph1.3}%
+\contentsline {section}{\numberline {A.4}Aumento de datos (detalle)}{48}{section.Alph1.4}%
+\contentsline {chapter}{\numberline {B}Tabla maestra de resultados y detalle por fold}{50}{appendix.Alph2}%
+\contentsline {section}{\numberline {B.1}Arco completo por régimen}{50}{section.Alph2.1}%
+\contentsline {section}{\numberline {B.2}Pool multi-fuente: detalle global y por dataset}{50}{section.Alph2.2}%
+\contentsline {section}{\numberline {B.3}Auditoría de fuga de información}{50}{section.Alph2.3}%
+\contentsline {section}{\numberline {B.4}Validación cruzada por dominio (LODO)}{51}{section.Alph2.4}%
+\contentsline {section}{\numberline {B.5}Validación intra-dominio BTC: detalle por fold}{51}{section.Alph2.5}%
+\contentsline {section}{\numberline {B.6}Espacio latente: silhouette y sondas intra-clase}{51}{section.Alph2.6}%
+\contentsline {chapter}{\numberline {C}Figuras adicionales}{54}{appendix.Alph3}%
+\contentsline {section}{\numberline {C.1}Mapas de atención (Grad-CAM)}{55}{section.Alph3.1}%
+\contentsline {chapter}{\numberline {D}Reproducibilidad: comandos, seeds y entorno}{58}{appendix.Alph4}%
+\contentsline {section}{\numberline {D.1}Comandos por etapa}{58}{section.Alph4.1}%
+\contentsline {section}{\numberline {D.2}Semillas y bootstrap}{59}{section.Alph4.2}%
+\contentsline {section}{\numberline {D.3}Entorno de cómputo}{59}{section.Alph4.3}%
+\contentsline {section}{\numberline {D.4}Estructura del repositorio}{59}{section.Alph4.4}%

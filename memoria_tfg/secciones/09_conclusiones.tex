@@ -1,3 +1,36 @@
 \chapter{Conclusiones}
 \label{apdo:conclusiones}
-% TODO: redactar capítulo de conclusiones
+
+La conclusión central de este trabajo es que el rendimiento aparente del
+clasificador tumor/no-tumor sobre el pool multi-fuente ---próximo a la
+perfección--- es atribuible íntegramente a un \emph{confound}
+dominio$\leftrightarrow$clase, y no a la detección de lesión. Cuando la etiqueta
+coincide con el dataset de procedencia, «reconocer la cohorte de origen» y
+«predecir la clase» son operaciones equivalentes, de modo que la métrica interna
+mide la primera capacidad y no la segunda. La aportación principal de la memoria
+no es, por tanto, un clasificador, sino el \textbf{protocolo de auditoría
+reproducible} que permite diagnosticar este modo de fallo y la caracterización
+del aprendizaje espurio que lo origina.
+
+Este resultado da cumplimiento a los objetivos planteados. Se implementó un
+pipeline 3D reproducible y homogéneo para RM cerebral multi-fuente, con partición
+a nivel de sujeto y semillas fijas, y sobre él se midió el rendimiento del régimen
+de validación interna, que se tomó como punto de partida anómalo a auditar y no
+como un logro. La auditoría de su validez se llevó a cabo mediante la cadena
+anti-confounding diseñada al efecto ---un baseline trivial de intensidad, la
+validación cruzada por dominio, la validación intra-dominio sobre una cohorte de un
+solo escáner y el análisis del espacio latente---, que constituye el núcleo del
+trabajo. En paralelo se descartaron las explicaciones alternativas del rendimiento
+---la fuga de información por partición y la presencia de duplicados---, lo que
+permitió aislar el confound de dominio como causa. Con ello quedó caracterizado el
+confound dominio$\leftrightarrow$clase como un sesgo estructural, ligado a la
+composición de los datos, y se derivaron las recomendaciones metodológicas
+correspondientes para el trabajo con datos públicos multi-fuente.
+
+En conjunto, la memoria aporta un protocolo de auditoría anti-confounding
+transferible a otros problemas de imagen médica con riesgo de sesgo de dominio, y
+muestra que un resultado de naturaleza crítica ---demostrar que un rendimiento
+aparentemente excelente carece de validez--- constituye en sí mismo una
+contribución metodológica, y no un fracaso. El valor del trabajo reside,
+precisamente, en sustituir la aceptación acrítica de una métrica elevada por un
+procedimiento sistemático que distingue el aprendizaje genuino del espurio.

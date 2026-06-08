@@ -1,20 +1,178 @@
 \chapter{Discusión}
-% TODO: redactar capítulo de discusión
 
-\section{Interpretación: confound estructural dominio-clase}
-% TODO
+Este capítulo interpreta los resultados del capítulo anterior y los sitúa en su
+contexto metodológico y bibliográfico. No se aportan cifras ni figuras nuevas:
+los hallazgos cuantitativos quedan en el capítulo de resultados, al que se remite
+puntualmente. El objetivo es explicar \emph{por qué} el rendimiento aparente del
+clasificador no constituye evidencia de detección de lesión, qué naturaleza tiene
+el sesgo identificado y qué implicaciones tiene para el diseño de estudios
+análogos.
+
+\section{Interpretación: confound estructural dominio$\leftrightarrow$clase}
+
+La cadena de evidencia del capítulo de resultados converge en una única
+conclusión: el rendimiento casi perfecto sobre el pool multi-fuente
+(Tabla~\ref{tab:sintesis}) refleja la capacidad de reconocer la cohorte de
+procedencia, no la presencia de tumor. La premisa es sencilla de enunciar
+---un baseline trivial de intensidad iguala a la red, el origen del estudio es
+identificable a partir de los píxeles, y la señal se desvanece al controlar el
+dominio--- y el resto de esta sección se dedica a la interpretación que los
+resultados, por sí solos, no ofrecen: la \emph{naturaleza} de ese sesgo.
+
+El punto central es que el confound es \textbf{estructural}, no incidental.
+Procede de una propiedad de la composición del conjunto ---la equivalencia
+exacta \texttt{label}\,$\equiv$\,\texttt{dataset}, en la que cada cohorte aporta
+una sola clase--- y no de un defecto del modelo, de la partición o del
+entrenamiento. La distinción es esencial. Un sesgo \emph{subsanable} es aquel que
+puede atenuarse actuando sobre el procedimiento: reequilibrar clases, ampliar el
+aumento de datos, regularizar, reponderar la pérdida o reparar una fuga de
+partición. Un confound estructural, en cambio, está inscrito en la relación entre
+las variables del propio conjunto de datos: cuando el dominio y la clase son
+estadísticamente indistinguibles, \emph{cualquier} rasgo que separe las cohortes
+de origen es, a la vez y por construcción, un predictor perfecto de la etiqueta.
+
+De ahí se sigue por qué los ajustes de entrenamiento no pueden resolverlo. Las
+técnicas de regularización o de aumento de datos buscan que el modelo ignore
+características poco fiables y se apoye en la señal genuina; pero aquí no existe
+una señal genuina separable del atajo dentro de los datos de entrenamiento,
+porque dominio y clase portan exactamente la misma información. Suprimir la
+información de dominio equivaldría a suprimir la de clase. Por la misma razón, un
+modelo más capaz o mejor entrenado no mitigaría el problema: lo agravaría, al
+explotar con más eficacia una correlación que es, en este conjunto, perfecta.
+Este es el mecanismo del \emph{aprendizaje espurio} o aprendizaje por
+atajos~\cite{geirhos2020shortcut}: la red optimiza la única solución que los
+datos premian, que resulta ser la procedencia. En términos causales, el dataset
+de origen actúa como una variable de confusión que abre un camino espurio entre
+la imagen y la etiqueta, indistinguible del camino causal de interés mientras no
+se intervenga sobre la composición del conjunto~\cite{castro2020causality}.
 
 \section{Por qué las métricas casi perfectas no son evidencia clínica}
-% TODO
+
+El resultado tiene una lectura epistemológica que trasciende este caso concreto.
+Una métrica de validación interna alta es una condición \emph{necesaria} pero no
+\emph{suficiente} para afirmar capacidad de detección. El argumento decisivo es
+de cota: si un baseline trivial de intensidad ---sin red neuronal, sin
+información espacial ni anatómica--- alcanza el mismo techo que la red profunda,
+entonces la separabilidad de las clases no requiere conocimiento clínico, y la
+métrica deja de informar sobre la tarea pretendida. Las probabilidades bimodales
+por cohorte, con varianza intra-dataset prácticamente nula
+(Tabla~\ref{tab:pool_perdataset}), son la firma observable de ese fenómeno: el
+modelo no gradúa su confianza según la evidencia de lesión, sino que asigna
+valores casi constantes por fuente.
+
+Se sigue que una validación interna sobre un pool en el que la fuente coincide
+con la clase es, por construcción, poco informativa sobre la detección, por
+elevada que sea la cifra obtenida. El control trivial cumple aquí la función de
+una prueba de cordura: cuando un modelo lineal sobre estadísticos groseros iguala
+a una arquitectura profunda, la conclusión correcta no es que ambos «detectan»,
+sino que la tarea, tal como está planteada, no exige detección. Casos análogos
+están documentados en imagen médica, donde modelos que aparentaban diagnosticar
+neumonía o COVID-19 en radiografía se apoyaban en marcadores de procedencia o de
+adquisición en lugar de en signos patológicos~\cite{zech2018pneumonia,degrave2021shortcuts};
+la diferencia en el presente trabajo es que la correlación entre dominio y clase
+es total, lo que lleva el fenómeno a su expresión extrema.
 
 \section{Viabilidad y condiciones para un triaje radiológico válido}
-% TODO
+
+Que el rendimiento aparente sea atribuible al confound no invalida la motivación
+clínica del triaje automático, pero sí fija las \emph{condiciones} bajo las
+cuales un sistema de este tipo podría evaluarse con validez. La primera condición
+es de datos: para que la métrica mida detección y no procedencia, es necesario
+que la equivalencia \texttt{label}\,$\equiv$\,\texttt{dataset} se rompa, es decir,
+que cada centro o cohorte aporte \emph{ambas} clases. Solo entonces la firma de
+adquisición deja de ser un predictor de la etiqueta y el modelo se ve forzado a
+apoyarse en la señal clínica.
+
+La segunda condición es de protocolo: la validación intra-dominio ---evaluar
+sobre datos en los que tumor y control proceden del mismo dominio de
+adquisición--- debería considerarse un \textbf{estándar mínimo} antes de atribuir
+a un sistema capacidad de detección. En este trabajo, ese régimen es el único que
+ofrece una medida no contaminada (Tabla~\ref{tab:btc_resultados}); su resultado,
+en el tamaño muestral disponible, no permite afirmar capacidad de detección, pero
+sí demuestra que el rendimiento del régimen confundido no se transfiere a una
+evaluación honesta. En el plano operativo, el encuadre propio del triaje
+---priorizar la sensibilidad para no posponer estudios con hallazgos
+urgentes~\cite{titano2018cranial}--- mantiene su sentido como objetivo de diseño,
+pero su evaluación queda subordinada a las dos condiciones anteriores. Conviene
+recordar que la finalidad de este trabajo no es desplegar un clasificador, sino
+auditar la validez del rendimiento, en línea con la literatura que advierte de la
+brecha entre el rendimiento publicado y la utilidad clínica de los sistemas de
+aprendizaje profundo en imagen médica~\cite{litjens2017survey}.
 
 \section{Comparación con la literatura: shortcut learning, dataset bias y domain shift}
-% TODO
+
+El hallazgo se integra de forma natural en cuatro líneas de la literatura. La
+primera es el \emph{shortcut learning}: la tendencia de las redes profundas a
+resolver una tarea mediante atajos que funcionan en los datos de entrenamiento
+pero no se corresponden con la solución pretendida~\cite{geirhos2020shortcut}. La
+segunda son las correlaciones espurias específicas de la imagen médica, donde la
+procedencia de los datos (hospital, equipo, protocolo) se filtra como señal
+predictiva; los casos de la neumonía~\cite{zech2018pneumonia} y de la
+COVID-19~\cite{degrave2021shortcuts} en radiografía de tórax son los referentes
+canónicos. La tercera son los efectos de escáner y de centro en datos
+multi-sitio, que introducen diferencias sistemáticas medibles incluso entre
+sujetos comparables~\cite{glocker2019scanner}. La cuarta es el marco causal del
+cambio de dominio, que formaliza por qué estas correlaciones se rompen ---o se
+invierten--- al cambiar de población~\cite{castro2020causality}.
+
+Respecto a este cuerpo de trabajo, el presente caso aporta una instancia
+\textbf{extrema y didáctica}: mientras que en los estudios citados el atajo
+coexiste con cierta señal genuina y la correlación dominio$\leftrightarrow$clase es parcial, aquí
+es del 100\,\%, lo que permite observar el fenómeno en estado puro y medir su
+magnitud sin ambigüedad (el arco de la Tabla~\ref{tab:sintesis}). Cabe señalar,
+como contraste, que el desplazamiento de dominio en resonancia magnética cerebral
+es un problema reconocido y abordado en la literatura de segmentación de lesión
+con redes 3D~\cite{kamnitsas2017deepmedic}; la diferencia es que aquí no se trata
+de un dominio que degrada una señal real, sino de un dominio que \emph{sustituye}
+a la señal como base de la predicción.
 
 \section{Validez metodológica y reproducibilidad}
-% TODO
+
+La solidez de la conclusión descansa en el diseño del protocolo de auditoría. La
+comparación entre regímenes es \emph{apples-to-apples}: la arquitectura y todos
+los hiperparámetros se mantienen constantes entre el régimen confundido, el
+cross-dataset y el intra-dominio, de modo que las diferencias de rendimiento solo
+pueden atribuirse al cambio de partición y no a variaciones del método. El uso de
+semillas fijas y la publicación de los resultados como ficheros versionados
+confieren trazabilidad y reproducibilidad a cada cifra.
+
+Igualmente importante es que el protocolo \textbf{descarta explícitamente las
+explicaciones alternativas} del rendimiento, lo que permite aislar el confound
+como causa. La fuga por repetición de muestras se descarta por la ausencia de
+duplicados exactos entre particiones; la fuga por partición, por el reparto a
+nivel de sujeto, que impide que un mismo individuo aparezca en entrenamiento y
+test. Eliminadas estas hipótesis, el confound dominio$\leftrightarrow$clase queda como la única
+explicación compatible con el conjunto de observaciones. Procede, no obstante,
+ser explícito sobre el alcance de lo que el protocolo permite afirmar: demuestra
+que el rendimiento aparente es atribuible al confound, pero no habilita la
+afirmación inversa de que la detección sea imposible; la validación intra-dominio
+solo autoriza a concluir que no se observa señal por encima del azar con el
+tamaño muestral disponible. Esta cautela ---no confundir la ausencia de evidencia
+con la evidencia de ausencia--- es parte de la validez metodológica del trabajo.
 
 \section{Implicaciones para el diseño de estudios con datos públicos multi-fuente}
-% TODO
+
+De lo anterior se desprende una lección de diseño aplicable más allá de este
+trabajo. Combinar datasets públicos \emph{monoclase} ---como BraTS y UPENN-GBM,
+que solo aportan tumor, frente a IXI y NKI Rockland, que solo aportan sujetos
+sanos--- inyecta el confound dominio$\leftrightarrow$clase \textbf{por construcción}: la etiqueta
+queda determinada por la fuente antes de entrenar modelo alguno. Es una situación
+fácil de crear de forma inadvertida al ensamblar conjuntos a partir de
+repositorios heterogéneos, y la elevada métrica resultante puede interpretarse
+erróneamente como éxito.
+
+Como principios de diseño para el campo se derivan tres recomendaciones. La
+primera es \textbf{auditar la composición} antes de interpretar cualquier
+métrica: comprobar si la fuente de origen predice la clase y, en tal caso, tratar
+toda cifra interna con cautela. La segunda es emplear \textbf{baselines triviales
+como control de cordura}; cuando un modelo lineal sobre estadísticos groseros de
+intensidad iguala a una red profunda, ello señala que la separabilidad no
+requiere aprendizaje de la estructura clínica. La tercera es \textbf{reportar
+validación intra-dominio} siempre que se pretenda atribuir capacidad de
+detección, por ser el único régimen que controla la procedencia. Estas
+recomendaciones son coherentes con la evidencia sobre efectos de escáner y centro
+en datos multi-sitio~\cite{glocker2019scanner} y con el marco causal que explica
+la fragilidad de los modelos ante cambios de
+población~\cite{castro2020causality}, y constituyen la contribución metodológica
+principal del trabajo: un protocolo de auditoría anti-confounding reutilizable,
+más que un clasificador.
