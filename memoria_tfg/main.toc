@@ -67,25 +67,25 @@
 \contentsline {section}{\numberline {8.5}Validez metodológica y reproducibilidad}{42}{section.8.5}%
 \contentsline {section}{\numberline {8.6}Implicaciones para el diseño de estudios con datos públicos multi-fuente}{43}{section.8.6}%
 \contentsline {chapter}{\numberline {9}Conclusiones}{44}{chapter.9}%
-\contentsline {chapter}{\numberline {10}Limitaciones y líneas futuras}{45}{chapter.10}%
-\contentsline {section}{\numberline {10.1}Limitaciones del estudio}{45}{section.10.1}%
-\contentsline {section}{\numberline {10.2}Propuestas de mejora y líneas futuras}{45}{section.10.2}%
-\contentsline {chapter}{\numberline {A}Detalle de preprocesado y configuraciones}{47}{appendix.Alph1}%
-\contentsline {section}{\numberline {A.1}Pipeline de preprocesado}{47}{section.Alph1.1}%
-\contentsline {section}{\numberline {A.2}Hiperparámetros del entrenamiento principal (pool)}{47}{section.Alph1.2}%
-\contentsline {section}{\numberline {A.3}Variantes: LODO e intra-dominio BTC}{48}{section.Alph1.3}%
-\contentsline {section}{\numberline {A.4}Aumento de datos (detalle)}{48}{section.Alph1.4}%
-\contentsline {chapter}{\numberline {B}Tabla maestra de resultados y detalle por fold}{50}{appendix.Alph2}%
-\contentsline {section}{\numberline {B.1}Arco completo por régimen}{50}{section.Alph2.1}%
-\contentsline {section}{\numberline {B.2}Pool multi-fuente: detalle global y por dataset}{50}{section.Alph2.2}%
-\contentsline {section}{\numberline {B.3}Auditoría de fuga de información}{50}{section.Alph2.3}%
-\contentsline {section}{\numberline {B.4}Validación cruzada por dominio (LODO)}{51}{section.Alph2.4}%
-\contentsline {section}{\numberline {B.5}Validación intra-dominio BTC: detalle por fold}{51}{section.Alph2.5}%
-\contentsline {section}{\numberline {B.6}Espacio latente: silhouette y sondas intra-clase}{51}{section.Alph2.6}%
-\contentsline {chapter}{\numberline {C}Figuras adicionales}{54}{appendix.Alph3}%
-\contentsline {section}{\numberline {C.1}Mapas de atención (Grad-CAM)}{55}{section.Alph3.1}%
-\contentsline {chapter}{\numberline {D}Reproducibilidad: comandos, seeds y entorno}{58}{appendix.Alph4}%
-\contentsline {section}{\numberline {D.1}Comandos por etapa}{58}{section.Alph4.1}%
-\contentsline {section}{\numberline {D.2}Semillas y bootstrap}{59}{section.Alph4.2}%
-\contentsline {section}{\numberline {D.3}Entorno de cómputo}{59}{section.Alph4.3}%
-\contentsline {section}{\numberline {D.4}Estructura del repositorio}{59}{section.Alph4.4}%
+\contentsline {chapter}{\numberline {10}Limitaciones y líneas futuras}{46}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Limitaciones del estudio}{46}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Propuestas de mejora y líneas futuras}{46}{section.10.2}%
+\contentsline {chapter}{\numberline {A}Detalle de preprocesado y configuraciones}{48}{appendix.Alph1}%
+\contentsline {section}{\numberline {A.1}Pipeline de preprocesado}{48}{section.Alph1.1}%
+\contentsline {section}{\numberline {A.2}Hiperparámetros del entrenamiento principal (pool)}{48}{section.Alph1.2}%
+\contentsline {section}{\numberline {A.3}Variantes: LODO e intra-dominio BTC}{50}{section.Alph1.3}%
+\contentsline {section}{\numberline {A.4}Aumento de datos (detalle)}{50}{section.Alph1.4}%
+\contentsline {chapter}{\numberline {B}Tabla maestra de resultados y detalle por fold}{51}{appendix.Alph2}%
+\contentsline {section}{\numberline {B.1}Arco completo por régimen}{51}{section.Alph2.1}%
+\contentsline {section}{\numberline {B.2}Pool multi-fuente: detalle global y por dataset}{51}{section.Alph2.2}%
+\contentsline {section}{\numberline {B.3}Auditoría de fuga de información}{51}{section.Alph2.3}%
+\contentsline {section}{\numberline {B.4}Validación cruzada por dominio (LODO)}{52}{section.Alph2.4}%
+\contentsline {section}{\numberline {B.5}Validación intra-dominio BTC: detalle por fold}{52}{section.Alph2.5}%
+\contentsline {section}{\numberline {B.6}Espacio latente: silhouette y sondas intra-clase}{52}{section.Alph2.6}%
+\contentsline {chapter}{\numberline {C}Figuras adicionales}{55}{appendix.Alph3}%
+\contentsline {section}{\numberline {C.1}Mapas de atención (Grad-CAM)}{56}{section.Alph3.1}%
+\contentsline {chapter}{\numberline {D}Reproducibilidad: comandos, seeds y entorno}{59}{appendix.Alph4}%
+\contentsline {section}{\numberline {D.1}Comandos por etapa}{59}{section.Alph4.1}%
+\contentsline {section}{\numberline {D.2}Semillas y bootstrap}{60}{section.Alph4.2}%
+\contentsline {section}{\numberline {D.3}Entorno de cómputo}{60}{section.Alph4.3}%
+\contentsline {section}{\numberline {D.4}Estructura del repositorio}{60}{section.Alph4.4}%

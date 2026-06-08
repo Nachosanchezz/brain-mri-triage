@@ -31,9 +31,10 @@ sistemática entre particiones por el modo de recorte.
 
 El calificativo de \emph{homogéneo} es deliberado: el mismo preprocesado y la
 misma transformación de carga se aplican a las cuatro cohortes del pool y, sin
-más cambio que el número de canales de entrada, a la cohorte intra-dominio. Así,
-ninguna diferencia de resultados entre datasets puede atribuirse a un
-tratamiento distinto de los datos.
+más cambio que el número de canales de entrada, a la cohorte intra-dominio. De
+este modo, el uso de un pipeline común reduce las diferencias atribuibles al
+procesamiento aplicado en este trabajo, aunque no elimina las diferencias previas
+de adquisición, reconstrucción o preparación propias de cada cohorte.
 
 \section{Arquitectura del modelo CNN 3D}
 
@@ -228,6 +229,6 @@ configuración (\texttt{configs/train\_lodo.yaml}) idéntica a la del entrenamie
 principal salvo en dos detalles: no regenera la partición ---lee la partición por
 dataset preparada aparte--- y escribe en su propio directorio de salida. Mantener
 constantes el modelo y todos los hiperparámetros garantiza que la comparación
-entre el régimen confundido y el cross-dataset sea estrictamente
-\emph{apples-to-apples}, atribuible solo al cambio de partición y no a diferencias
-de método.
+entre el régimen confundido y el cross-dataset quede estrictamente controlada,
+de modo que las diferencias observadas sean atribuibles solo al cambio de
+partición y no a diferencias de método.

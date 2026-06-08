@@ -59,7 +59,11 @@ encuadre operativo es propio de los sistemas de triaje radiológico, en los que
 el objetivo es ordenar la lista de trabajo y no perder hallazgos
 urgentes~\cite{titano2018cranial}; debe subrayarse, no obstante, que la finalidad
 de este trabajo no es desplegar un clasificador, sino auditar la validez de su
-rendimiento aparente.
+rendimiento aparente. En coherencia con ello, aunque la calibración probabilística
+es relevante para un sistema de triaje desplegable, no se evalúa formalmente en
+esta memoria: el objetivo no es seleccionar un umbral operativo final, sino
+auditar si las probabilidades emitidas tienen validez discriminativa bajo control
+del dominio.
 
 \section{Validación interna sobre el pool multi-fuente}
 
@@ -176,17 +180,21 @@ datasets y se evalúa en otros nunca vistos durante el entrenamiento,
 manteniendo intactos el modelo y todos los hiperparámetros (la configuración
 \texttt{train\_lodo.yaml} es idéntica a la principal salvo en el origen de la
 partición, capítulo de metodología), de modo que la comparación entre el régimen
-interno y el cross-dataset sea estrictamente \emph{apples-to-apples}.
+interno y el cross-dataset quede estrictamente controlada.
 
 Las particiones por dataset, generadas específicamente para este régimen,
 agrupan un dataset de tumor con uno de sano para entrenamiento y reservan los
 otros dos para test; la partición interna entrenamiento/validación se hace por
 sujeto con $\texttt{val\_ratio}=0{,}15$ y semilla $42$. La
 Tabla~\ref{tab:lodo} recoge las cuatro configuraciones. La red convolucional se
-evalúa en las dos direcciones principales (A y B); el \emph{baseline} trivial de
-intensidad se ejecuta además en las configuraciones C y D y frente a una
-referencia de mezcla aleatoria, lo que permite cartografiar el comportamiento
-cross-dataset también para el modelo lineal.
+evalúa en las configuraciones A y B, que constituyen los dos contrastes
+principales de generalización cruzada ---una es el sentido inverso de la otra---
+y permiten una lectura directa del cambio de dominio entre pares tumor/sano no
+vistos. Las configuraciones C y D se reservan para el \emph{baseline} trivial de
+intensidad como análisis complementario de bajo coste, que evita dos
+entrenamientos adicionales de la red y permite comprobar la sensibilidad del
+atajo de intensidad a distintas combinaciones de cohortes; se añade además una
+referencia de mezcla aleatoria.
 
 \begin{table}[ht]
   \centering

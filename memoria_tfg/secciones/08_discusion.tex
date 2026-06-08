@@ -10,17 +10,17 @@ análogos.
 
 \section{Interpretación: confound estructural dominio$\leftrightarrow$clase}
 
-La cadena de evidencia del capítulo de resultados converge en una única
-conclusión: el rendimiento casi perfecto sobre el pool multi-fuente
-(Tabla~\ref{tab:sintesis}) refleja la capacidad de reconocer la cohorte de
-procedencia, no la presencia de tumor. La premisa es sencilla de enunciar
+La cadena de evidencia del capítulo de resultados apunta de forma consistente a
+que el rendimiento casi perfecto sobre el pool multi-fuente
+(Tabla~\ref{tab:sintesis}) está dominado por la capacidad de reconocer la cohorte
+de procedencia, más que por la presencia de tumor. La premisa es sencilla de enunciar
 ---un baseline trivial de intensidad iguala a la red, el origen del estudio es
 identificable a partir de los píxeles, y la señal se desvanece al controlar el
 dominio--- y el resto de esta sección se dedica a la interpretación que los
 resultados, por sí solos, no ofrecen: la \emph{naturaleza} de ese sesgo.
 
-El punto central es que el confound es \textbf{estructural}, no incidental.
-Procede de una propiedad de la composición del conjunto ---la equivalencia
+El punto central es que este factor de confusión es \emph{estructural}, no
+incidental. Procede de una propiedad de la composición del conjunto ---la equivalencia
 exacta \texttt{label}\,$\equiv$\,\texttt{dataset}, en la que cada cohorte aporta
 una sola clase--- y no de un defecto del modelo, de la partición o del
 entrenamiento. La distinción es esencial. Un sesgo \emph{subsanable} es aquel que
@@ -116,10 +116,10 @@ cambio de dominio, que formaliza por qué estas correlaciones se rompen ---o se
 invierten--- al cambiar de población~\cite{castro2020causality}.
 
 Respecto a este cuerpo de trabajo, el presente caso aporta una instancia
-\textbf{extrema y didáctica}: mientras que en los estudios citados el atajo
+particularmente nítida: mientras que en los estudios citados el atajo
 coexiste con cierta señal genuina y la correlación dominio$\leftrightarrow$clase es parcial, aquí
-es del 100\,\%, lo que permite observar el fenómeno en estado puro y medir su
-magnitud sin ambigüedad (el arco de la Tabla~\ref{tab:sintesis}). Cabe señalar,
+es del 100\,\%, lo que permite observar el fenómeno de forma especialmente clara y
+cuantificar su magnitud (el arco de la Tabla~\ref{tab:sintesis}). Cabe señalar,
 como contraste, que el desplazamiento de dominio en resonancia magnética cerebral
 es un problema reconocido y abordado en la literatura de segmentación de lesión
 con redes 3D~\cite{kamnitsas2017deepmedic}; la diferencia es que aquí no se trata
@@ -129,7 +129,7 @@ a la señal como base de la predicción.
 \section{Validez metodológica y reproducibilidad}
 
 La solidez de la conclusión descansa en el diseño del protocolo de auditoría. La
-comparación entre regímenes es \emph{apples-to-apples}: la arquitectura y todos
+comparación entre regímenes está estrictamente controlada: la arquitectura y todos
 los hiperparámetros se mantienen constantes entre el régimen confundido, el
 cross-dataset y el intra-dominio, de modo que las diferencias de rendimiento solo
 pueden atribuirse al cambio de partición y no a variaciones del método. El uso de
@@ -141,8 +141,8 @@ explicaciones alternativas} del rendimiento, lo que permite aislar el confound
 como causa. La fuga por repetición de muestras se descarta por la ausencia de
 duplicados exactos entre particiones; la fuga por partición, por el reparto a
 nivel de sujeto, que impide que un mismo individuo aparezca en entrenamiento y
-test. Eliminadas estas hipótesis, el confound dominio$\leftrightarrow$clase queda como la única
-explicación compatible con el conjunto de observaciones. Procede, no obstante,
+test. Eliminadas estas hipótesis, el confound dominio$\leftrightarrow$clase queda como la
+explicación más consistente con el conjunto de observaciones. Procede, no obstante,
 ser explícito sobre el alcance de lo que el protocolo permite afirmar: demuestra
 que el rendimiento aparente es atribuible al confound, pero no habilita la
 afirmación inversa de que la detección sea imposible; la validación intra-dominio

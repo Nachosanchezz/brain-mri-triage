@@ -16,12 +16,12 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {C.1}{\ignorespaces Curvas ROC por régimen}}{54}{figure.caption.31}%
-\contentsline {figure}{\numberline {C.2}{\ignorespaces Histograma de scores (régimen confundido)}}{55}{figure.caption.32}%
-\contentsline {figure}{\numberline {C.3}{\ignorespaces Histograma de scores (LODO)}}{55}{figure.caption.33}%
-\contentsline {figure}{\numberline {C.4}{\ignorespaces AUC por fold en la validación intra-dominio}}{56}{figure.caption.34}%
-\contentsline {figure}{\numberline {C.5}{\ignorespaces Proyección PCA del espacio latente}}{56}{figure.caption.35}%
-\contentsline {figure}{\numberline {C.6}{\ignorespaces Grad-CAM, régimen confundido}}{56}{figure.caption.36}%
-\contentsline {figure}{\numberline {C.7}{\ignorespaces Grad-CAM, régimen LODO A}}{57}{figure.caption.37}%
-\contentsline {figure}{\numberline {C.8}{\ignorespaces Grad-CAM, régimen LODO B}}{57}{figure.caption.38}%
+\contentsline {figure}{\numberline {C.1}{\ignorespaces Curvas ROC por régimen}}{55}{figure.caption.32}%
+\contentsline {figure}{\numberline {C.2}{\ignorespaces Histograma de scores (régimen confundido)}}{56}{figure.caption.33}%
+\contentsline {figure}{\numberline {C.3}{\ignorespaces Histograma de scores (LODO)}}{56}{figure.caption.34}%
+\contentsline {figure}{\numberline {C.4}{\ignorespaces AUC por fold en la validación intra-dominio}}{57}{figure.caption.35}%
+\contentsline {figure}{\numberline {C.5}{\ignorespaces Proyección PCA del espacio latente}}{57}{figure.caption.36}%
+\contentsline {figure}{\numberline {C.6}{\ignorespaces Grad-CAM, régimen confundido}}{57}{figure.caption.37}%
+\contentsline {figure}{\numberline {C.7}{\ignorespaces Grad-CAM, régimen LODO A}}{58}{figure.caption.38}%
+\contentsline {figure}{\numberline {C.8}{\ignorespaces Grad-CAM, régimen LODO B}}{58}{figure.caption.39}%
 \addvspace {10\p@ }

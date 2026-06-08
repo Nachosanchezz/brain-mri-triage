@@ -68,10 +68,11 @@ en las cuatro cohortes, porque cada una aporta una sola clase.
   \end{tabular}
 \end{table}
 
-Este resultado \textbf{no debe interpretarse como un logro}. Un rendimiento casi
+Este resultado no debe interpretarse como un logro. Un rendimiento casi
 perfecto en un problema clínicamente difícil, sumado a unas probabilidades
 bimodales por cohorte y a la imposibilidad de medir discriminación dentro de
-cada dataset, configura una \emph{anomalía que exige auditoría}. Las secciones
+cada dataset, configura una anomalía que conviene auditar antes de atribuirle
+significado clínico. Las secciones
 siguientes determinan si estas cifras reflejan detección de lesión o una
 correlación espuria con la procedencia del estudio.
 
@@ -107,8 +108,9 @@ modo que «reconocer la cohorte» y «predecir la clase» son operaciones
 equivalentes. Este es el \emph{confound} dominio$\leftrightarrow$clase. La
 separabilidad de las cohortes en los datos crudos ya se aprecia en las
 distribuciones de intensidad por dataset (Figura~\ref{fig:intensity}, en el
-capítulo de materiales): el confound precede al modelo, vive en los propios
-píxeles.
+capítulo de materiales): el factor de confusión precede al modelo y es detectable
+ya en los estadísticos de intensidad de los datos crudos, antes de cualquier
+modelado.
 
 Conviene precisar el alcance de esta cifra para evitar una confusión frecuente:
 el $0{,}9853$ corresponde al clasificador de origen sobre \emph{intensidad}; más
@@ -207,6 +209,16 @@ cohorte pequeña. El gráfico de AUC por pliegue se incluye en el anexo. Lo
 relevante a efectos del trabajo es que, eliminado el confound por construcción,
 desaparece el rendimiento casi perfecto observado en el pool.
 
+Conviene delimitar el alcance de esta prueba. La validación BTC\_preop no debe
+interpretarse como una estimación definitiva del rendimiento clínico de una
+CNN 3D para detección tumoral ---el tamaño muestral es reducido ($n=36$), solo se
+dispone de la modalidad T1 y los intervalos de confianza son amplios---, sino como
+una prueba intra-dominio de baja potencia que permite comprobar si el rendimiento
+casi perfecto del pool se mantiene cuando se elimina la equivalencia
+clase-dataset. La conclusión, por tanto, es de alcance limitado: con estos datos
+no se observa señal robusta por encima del azar, lo que no equivale a afirmar que
+la detección sea imposible.
+
 \section{Evidencia en el espacio latente y mapas de atención}
 \label{sec:latente}
 
@@ -241,9 +253,9 @@ análisis intra-clase como la prueba limpia.
   \includegraphics[width=0.95\textwidth]{figuras/embeddings_tsne.png}
   \caption[Proyección t-SNE del espacio latente]{Proyección t-SNE del vector
   latente de 96 dimensiones de la CNN del régimen confundido, coloreada por
-  dataset (izquierda) y por etiqueta (derecha). Los agrupamientos se organizan
-  por cohorte de origen: IXI y NKI Rockland, pese a ser ambos de sujetos sanos,
-  no se fusionan. El espacio latente codifica la procedencia, no la patología.}
+  dataset (izquierda) y por etiqueta (derecha). IXI y NKI Rockland, pese a ser
+  ambos de sujetos sanos, no se fusionan, lo que es consistente con un espacio
+  latente organizado en buena medida por la procedencia del estudio.}
   \label{fig:tsne}
 \end{figure}
 
@@ -257,12 +269,18 @@ ninguna afirmación sobre la capacidad de detección.
 
 \section{Síntesis consolidada de resultados}
 
-La Tabla~\ref{tab:sintesis} reúne el arco completo de la auditoría. El patrón es
-inequívoco: el rendimiento casi perfecto del régimen interno (AUC $0{,}9999$),
-reproducido por un \emph{baseline} trivial de intensidad (AUC $1{,}0000$), se
-degrada y se invierte fuera de dominio (LODO A $0{,}6236$; LODO B $0{,}2012$) y
-colapsa hasta el azar cuando ambas clases proceden del mismo escáner (BTC\_preop
-$0{,}4036$, con intervalo de confianza que cruza $0{,}5$).
+La Tabla~\ref{tab:sintesis} reúne el arco completo de la auditoría. El conjunto de
+evidencias apunta de forma consistente en la misma dirección: el rendimiento casi
+perfecto del régimen interno (AUC $0{,}9999$), reproducido por un \emph{baseline}
+trivial de intensidad (AUC $1{,}0000$), se degrada y se invierte fuera de dominio
+(LODO A $0{,}6236$; LODO B $0{,}2012$) y desciende hasta valores compatibles con
+el azar cuando ambas clases proceden del mismo escáner (BTC\_preop $0{,}4036$, con
+intervalo de confianza que cruza $0{,}5$).
+
+Los intervalos de confianza se reportan únicamente para el régimen intra-dominio
+BTC, donde se estimaron mediante \emph{bootstrap} sobre las predicciones agregadas
+de la validación cruzada; en el pool y en LODO se presentan los resultados
+puntuales de los splits definidos.
 
 \begin{table}[ht]
   \centering
@@ -308,8 +326,8 @@ La síntesis gráfica (Figuras~\ref{fig:aucsummary} y~\ref{fig:confmat}) confirm
 la misma narrativa: el desplome del AUC entre regímenes y la transición de una
 matriz de confusión diagonal a una dispersa. En conjunto, los resultados
 sostienen la tesis del trabajo: el rendimiento aparente de la clasificación
-tumor/no-tumor sobre el pool multi-fuente era \textbf{íntegramente atribuible al
-\emph{confound} dominio$\leftrightarrow$clase}, y no a la capacidad de detectar
-lesión. La aportación del trabajo no es, por tanto, un clasificador desplegable,
-sino el \textbf{protocolo de auditoría} que permite diagnosticar este modo de
-fallo de forma reproducible.
+tumor/no-tumor sobre el pool multi-fuente está dominado por el \emph{confound}
+dominio$\leftrightarrow$clase y no puede interpretarse como evidencia válida de
+detección de lesión. La aportación del trabajo no es, por tanto, un clasificador
+desplegable, sino el \textbf{protocolo de auditoría} que permite diagnosticar este
+modo de fallo de forma reproducible.

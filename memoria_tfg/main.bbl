@@ -444,7 +444,6 @@
       \field{labelnamesource}{editor}
       \field{labeltitlesource}{title}
       \field{edition}{4}
-      \field{note}{Editores principales; serie OMS de clasificación de tumores}
       \field{title}{{WHO} Classification of Tumours of the Central Nervous System}
       \field{year}{2007}
     \endentry
@@ -479,7 +478,6 @@
       \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{note}{Clasificación histórica, superada por louis2021who}
       \field{title}{{WHO} Classification of Tumours: Pathology and Genetics of Tumours of the Nervous System}
       \field{year}{2000}
     \endentry

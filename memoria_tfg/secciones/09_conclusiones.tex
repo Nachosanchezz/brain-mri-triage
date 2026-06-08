@@ -3,10 +3,10 @@
 
 La conclusión central de este trabajo es que el rendimiento aparente del
 clasificador tumor/no-tumor sobre el pool multi-fuente ---próximo a la
-perfección--- es atribuible íntegramente a un \emph{confound}
-dominio$\leftrightarrow$clase, y no a la detección de lesión. Cuando la etiqueta
-coincide con el dataset de procedencia, «reconocer la cohorte de origen» y
-«predecir la clase» son operaciones equivalentes, de modo que la métrica interna
+perfección--- está dominado por un \emph{confound} dominio$\leftrightarrow$clase y
+no puede interpretarse como evidencia válida de detección de lesión. Cuando la
+etiqueta coincide con el dataset de procedencia, «reconocer la cohorte de origen»
+y «predecir la clase» son operaciones equivalentes, de modo que la métrica interna
 mide la primera capacidad y no la segunda. La aportación principal de la memoria
 no es, por tanto, un clasificador, sino el \textbf{protocolo de auditoría
 reproducible} que permite diagnosticar este modo de fallo y la caracterización
@@ -27,10 +27,16 @@ confound dominio$\leftrightarrow$clase como un sesgo estructural, ligado a la
 composición de los datos, y se derivaron las recomendaciones metodológicas
 correspondientes para el trabajo con datos públicos multi-fuente.
 
+Conviene precisar el alcance de esta conclusión: el trabajo no afirma que una
+CNN 3D sea incapaz de detectar tumores, sino que, con esta composición de datos,
+el rendimiento casi perfecto del pool no constituye evidencia válida de detección;
+y la validación intra-dominio, de baja potencia, solo permite afirmar que no se
+observa señal robusta por encima del azar con el tamaño muestral disponible.
+
 En conjunto, la memoria aporta un protocolo de auditoría anti-confounding
 transferible a otros problemas de imagen médica con riesgo de sesgo de dominio, y
-muestra que un resultado de naturaleza crítica ---demostrar que un rendimiento
-aparentemente excelente carece de validez--- constituye en sí mismo una
-contribución metodológica, y no un fracaso. El valor del trabajo reside,
+muestra que un resultado de naturaleza crítica ---mostrar que un rendimiento
+aparentemente excelente no es clínicamente interpretable--- constituye en sí mismo
+una contribución metodológica, y no un fracaso. El valor del trabajo reside,
 precisamente, en sustituir la aceptación acrítica de una métrica elevada por un
 procedimiento sistemático que distingue el aprendizaje genuino del espurio.

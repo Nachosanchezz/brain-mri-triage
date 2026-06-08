@@ -39,10 +39,44 @@ datasets no se deban a tratamientos distintos. La lógica común reside en
 
 La Tabla~\ref{tab:apx_hiper} reproduce la configuración completa de
 \texttt{configs/train\_3d.yaml}. Las proporciones de partición son
-70\,\% / 15\,\% / 15\,\% (entrenamiento/validación/test); el conjunto de test
-quedó compuesto por 340 estudios (175 positivos y 165 negativos), mientras que los
-recuentos absolutos por clase de entrenamiento y validación no se reportan aquí
-por no estar disponibles en un fichero versionado.
+70\,\% / 15\,\% / 15\,\% (entrenamiento/validación/test), con estratificación
+conjunta por \texttt{(dataset, label)} y agrupación por sujeto
+(\texttt{seed}~=~42). La Tabla~\ref{tab:apx_splits} resume la composición de los
+splits. El conjunto de test está verificado contra las predicciones versionadas
+(\texttt{cnn3d\_test\_predictions.csv}); los recuentos por clase de entrenamiento
+y validación se derivan de los totales del pool y son consistentes con el tamaño
+de cada partición. El desglose por dataset de entrenamiento y validación del run
+oficial no se reporta porque el fichero de \emph{split} original no está versionado
+y el \texttt{splits.json} disponible localmente corresponde a una regeneración que
+reproduce los totales por clase pero no la composición exacta por dataset del test
+oficial (véase la nota al pie de la tabla).
+
+\begin{table}[ht]
+  \centering
+  \caption[Composición de los splits del pool]{Composición de la partición del
+  pool multi-fuente. El test está verificado contra
+  \texttt{cnn3d\_test\_predictions.csv}; los recuentos por clase de entrenamiento
+  y validación son derivados y consistentes ($1587+340+340=2267$).}
+  \label{tab:apx_splits}
+  \begin{tabular}{l c c c c c c c l}
+    \hline
+    \textbf{Partición} & \textbf{$n$} & \textbf{Pos.} & \textbf{Neg.} & \textbf{BraTS} & \textbf{UPENN} & \textbf{IXI} & \textbf{NKI} & \textbf{Estado} \\
+    \hline
+    Entrenamiento & 1587 & 817 & 770 & --- & --- & --- & --- & derivado\textsuperscript{a} \\
+    Validación    & 340  & 175 & 165 & --- & --- & --- & --- & derivado\textsuperscript{a} \\
+    Test          & 340  & 175 & 165 & 87  & 88  & 86  & 79  & verificado \\
+    \hline
+    \textbf{Total} & \textbf{2267} & 1167 & 1100 & 580 & 587 & 577 & 523 & \\
+    \hline
+  \end{tabular}
+
+  \vspace{2pt}
+  {\footnotesize \textsuperscript{a} Los recuentos por clase de entrenamiento y
+  validación se derivan de los totales del pool y del test verificado; el desglose
+  por dataset queda pendiente de una re-auditoría formal del \emph{split} original
+  del run, ejecutando \texttt{python -m src.data.audit\_splits} sobre dicho fichero
+  (no versionado).}
+\end{table}
 
 \begin{table}[ht]
   \centering
