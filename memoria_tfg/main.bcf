@@ -2433,33 +2433,36 @@
     <bcf:citekey order="43" intorder="1">loshchilov2019adamw</bcf:citekey>
     <bcf:citekey order="44" intorder="1">paszke2019pytorch</bcf:citekey>
     <bcf:citekey order="45" intorder="1">li2016dcm2niix</bcf:citekey>
-    <bcf:citekey order="46" intorder="1">titano2018cranial</bcf:citekey>
-    <bcf:citekey order="47" intorder="1">geirhos2020shortcut</bcf:citekey>
-    <bcf:citekey order="48" intorder="1">zech2018pneumonia</bcf:citekey>
-    <bcf:citekey order="48" intorder="2">degrave2021shortcuts</bcf:citekey>
-    <bcf:citekey order="49" intorder="1">glocker2019scanner</bcf:citekey>
-    <bcf:citekey order="49" intorder="2">castro2020causality</bcf:citekey>
-    <bcf:citekey order="50" intorder="1">pedregosa2011sklearn</bcf:citekey>
-    <bcf:citekey order="51" intorder="1">aerts2022btcpreop</bcf:citekey>
-    <bcf:citekey order="52" intorder="1">maaten2008tsne</bcf:citekey>
-    <bcf:citekey order="53" intorder="1">selvaraju2017gradcam</bcf:citekey>
-    <bcf:citekey order="54" intorder="1">geirhos2020shortcut</bcf:citekey>
-    <bcf:citekey order="55" intorder="1">castro2020causality</bcf:citekey>
-    <bcf:citekey order="56" intorder="1">zech2018pneumonia</bcf:citekey>
-    <bcf:citekey order="56" intorder="2">degrave2021shortcuts</bcf:citekey>
-    <bcf:citekey order="57" intorder="1">titano2018cranial</bcf:citekey>
-    <bcf:citekey order="58" intorder="1">litjens2017survey</bcf:citekey>
-    <bcf:citekey order="59" intorder="1">geirhos2020shortcut</bcf:citekey>
-    <bcf:citekey order="60" intorder="1">zech2018pneumonia</bcf:citekey>
-    <bcf:citekey order="61" intorder="1">degrave2021shortcuts</bcf:citekey>
-    <bcf:citekey order="62" intorder="1">glocker2019scanner</bcf:citekey>
-    <bcf:citekey order="63" intorder="1">castro2020causality</bcf:citekey>
-    <bcf:citekey order="64" intorder="1">kamnitsas2017deepmedic</bcf:citekey>
+    <bcf:citekey order="46" intorder="1">hanley1982roc</bcf:citekey>
+    <bcf:citekey order="47" intorder="1">youden1950index</bcf:citekey>
+    <bcf:citekey order="48" intorder="1">titano2018cranial</bcf:citekey>
+    <bcf:citekey order="49" intorder="1">geirhos2020shortcut</bcf:citekey>
+    <bcf:citekey order="50" intorder="1">zech2018pneumonia</bcf:citekey>
+    <bcf:citekey order="50" intorder="2">degrave2021shortcuts</bcf:citekey>
+    <bcf:citekey order="51" intorder="1">glocker2019scanner</bcf:citekey>
+    <bcf:citekey order="51" intorder="2">castro2020causality</bcf:citekey>
+    <bcf:citekey order="52" intorder="1">pedregosa2011sklearn</bcf:citekey>
+    <bcf:citekey order="53" intorder="1">aerts2022btcpreop</bcf:citekey>
+    <bcf:citekey order="54" intorder="1">efron1993bootstrap</bcf:citekey>
+    <bcf:citekey order="55" intorder="1">maaten2008tsne</bcf:citekey>
+    <bcf:citekey order="56" intorder="1">selvaraju2017gradcam</bcf:citekey>
+    <bcf:citekey order="57" intorder="1">geirhos2020shortcut</bcf:citekey>
+    <bcf:citekey order="58" intorder="1">castro2020causality</bcf:citekey>
+    <bcf:citekey order="59" intorder="1">zech2018pneumonia</bcf:citekey>
+    <bcf:citekey order="59" intorder="2">degrave2021shortcuts</bcf:citekey>
+    <bcf:citekey order="60" intorder="1">titano2018cranial</bcf:citekey>
+    <bcf:citekey order="61" intorder="1">litjens2017survey</bcf:citekey>
+    <bcf:citekey order="62" intorder="1">geirhos2020shortcut</bcf:citekey>
+    <bcf:citekey order="63" intorder="1">zech2018pneumonia</bcf:citekey>
+    <bcf:citekey order="64" intorder="1">degrave2021shortcuts</bcf:citekey>
     <bcf:citekey order="65" intorder="1">glocker2019scanner</bcf:citekey>
     <bcf:citekey order="66" intorder="1">castro2020causality</bcf:citekey>
-    <bcf:citekey order="67" intorder="1">johnson2007combat</bcf:citekey>
-    <bcf:citekey order="67" intorder="2">fortin2017harmonization</bcf:citekey>
-    <bcf:citekey order="68" intorder="1">ganin2016dann</bcf:citekey>
+    <bcf:citekey order="67" intorder="1">kamnitsas2017deepmedic</bcf:citekey>
+    <bcf:citekey order="68" intorder="1">glocker2019scanner</bcf:citekey>
+    <bcf:citekey order="69" intorder="1">castro2020causality</bcf:citekey>
+    <bcf:citekey order="70" intorder="1">johnson2007combat</bcf:citekey>
+    <bcf:citekey order="70" intorder="2">fortin2017harmonization</bcf:citekey>
+    <bcf:citekey order="71" intorder="1">ganin2016dann</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

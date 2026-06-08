@@ -16,7 +16,7 @@ pruebas sucesivas.
 La métrica primaria es el \textbf{área bajo la curva ROC} (AUC), que mide la
 capacidad de ordenación del clasificador con independencia del umbral de
 decisión y se calcula sobre las probabilidades de la clase positiva (sigmoide
-del logit). Como métricas secundarias y complementarias se reportan el área bajo
+del logit)~\cite{hanley1982roc}. Como métricas secundarias y complementarias se reportan el área bajo
 la curva de precisión-exhaustividad (PR-AUC), la sensibilidad, la especificidad,
 la \emph{balanced accuracy} (media de sensibilidad y especificidad), la
 exactitud, la precisión, el valor predictivo negativo, el F1 y la matriz de
@@ -53,7 +53,7 @@ cohorte es en sí un reflejo de la composición del conjunto.
 El \textbf{análisis operativo del umbral} sigue una regla de honestidad
 metodológica: el umbral de decisión nunca se elige sobre el test. Se determina
 sobre el conjunto de validación ---bien maximizando la \emph{balanced accuracy}
-(criterio de Youden), bien fijando un umbral de alta sensibilidad
+(criterio de Youden~\cite{youden1950index}), bien fijando un umbral de alta sensibilidad
 (0,90--0,95 según la herramienta), por ser la sensibilidad la magnitud crítica
 en un escenario de priorización--- y solo después se aplica al test. Este
 encuadre operativo es propio de los sistemas de triaje radiológico, en los que
@@ -250,7 +250,7 @@ pliegue de test; se conservan el optimizador AdamW (tasa de aprendizaje
 $5\times10^{-5}$, decaimiento $1\times10^{-3}$), el planificador coseno, el lote
 unitario y un peso de clase positiva calculado en cada pliegue. Las predicciones
 de los cinco pliegues se agregan y se estima el AUC global con su intervalo de
-confianza al 95\,\% mediante \emph{bootstrap} de 2000 remuestreos.
+confianza al 95\,\% mediante \emph{bootstrap}~\cite{efron1993bootstrap} de 2000 remuestreos.
 
 Es esencial fijar de antemano el \textbf{alcance interpretativo} de este
 experimento. Con $n=36$ y unos intervalos de confianza necesariamente anchos, el

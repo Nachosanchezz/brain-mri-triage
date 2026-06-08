@@ -2420,6 +2420,70 @@
       \verb 10.1016/j.jneumeth.2016.03.001
       \endverb
     \endentry
+    \entry{hanley1982roc}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=2bb4f4ffb22bc24cbfd25904a8180856}{%
+           family={Hanley},
+           familyi={H\bibinitperiod},
+           given={James\bibnamedelima A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=7214a658740be88a12f9fc1352f6e830}{%
+           family={McNeil},
+           familyi={M\bibinitperiod},
+           given={Barbara\bibnamedelima J.},
+           giveni={B\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{4196fb52a873c21f559d577e73c76850}
+      \strng{fullhash}{4196fb52a873c21f559d577e73c76850}
+      \strng{fullhashraw}{4196fb52a873c21f559d577e73c76850}
+      \strng{bibnamehash}{4196fb52a873c21f559d577e73c76850}
+      \strng{authorbibnamehash}{4196fb52a873c21f559d577e73c76850}
+      \strng{authornamehash}{4196fb52a873c21f559d577e73c76850}
+      \strng{authorfullhash}{4196fb52a873c21f559d577e73c76850}
+      \strng{authorfullhashraw}{4196fb52a873c21f559d577e73c76850}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Radiology}
+      \field{number}{1}
+      \field{title}{The meaning and use of the area under a receiver operating characteristic ({ROC}) curve}
+      \field{volume}{143}
+      \field{year}{1982}
+      \field{pages}{29\bibrangedash 36}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1148/radiology.143.1.7063747
+      \endverb
+    \endentry
+    \entry{youden1950index}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=6089a67edd52af2a88b8863ddef4b614}{%
+           family={Youden},
+           familyi={Y\bibinitperiod},
+           given={William\bibnamedelima J.},
+           giveni={W\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{6089a67edd52af2a88b8863ddef4b614}
+      \strng{fullhash}{6089a67edd52af2a88b8863ddef4b614}
+      \strng{fullhashraw}{6089a67edd52af2a88b8863ddef4b614}
+      \strng{bibnamehash}{6089a67edd52af2a88b8863ddef4b614}
+      \strng{authorbibnamehash}{6089a67edd52af2a88b8863ddef4b614}
+      \strng{authornamehash}{6089a67edd52af2a88b8863ddef4b614}
+      \strng{authorfullhash}{6089a67edd52af2a88b8863ddef4b614}
+      \strng{authorfullhashraw}{6089a67edd52af2a88b8863ddef4b614}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Cancer}
+      \field{number}{1}
+      \field{title}{Index for rating diagnostic tests}
+      \field{volume}{3}
+      \field{year}{1950}
+      \field{pages}{32\bibrangedash 35}
+      \range{pages}{4}
+    \endentry
     \entry{pedregosa2011sklearn}{article}{}{}
       \true{moreauthor}
       \true{morelabelname}
@@ -2499,6 +2563,43 @@
       \verb{url}
       \verb https://www.jmlr.org/papers/v12/pedregosa11a.html
       \endverb
+    \endentry
+    \entry{efron1993bootstrap}{book}{}{}
+      \name{author}{2}{}{%
+        {{hash=5470455fc7dceb3ccf6db38cb22a113d}{%
+           family={Efron},
+           familyi={E\bibinitperiod},
+           given={Bradley},
+           giveni={B\bibinitperiod}}}%
+        {{hash=678c48302939b4b85d5ad2d85319617a}{%
+           family={Tibshirani},
+           familyi={T\bibinitperiod},
+           given={Robert\bibnamedelima J.},
+           giveni={R\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York}%
+      }
+      \list{publisher}{1}{%
+        {Chapman \& Hall}%
+      }
+      \strng{namehash}{5c03685c9f7f37796bba48432d40df61}
+      \strng{fullhash}{5c03685c9f7f37796bba48432d40df61}
+      \strng{fullhashraw}{5c03685c9f7f37796bba48432d40df61}
+      \strng{bibnamehash}{5c03685c9f7f37796bba48432d40df61}
+      \strng{authorbibnamehash}{5c03685c9f7f37796bba48432d40df61}
+      \strng{authornamehash}{5c03685c9f7f37796bba48432d40df61}
+      \strng{authorfullhash}{5c03685c9f7f37796bba48432d40df61}
+      \strng{authorfullhashraw}{5c03685c9f7f37796bba48432d40df61}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-0-412-04231-7}
+      \field{number}{57}
+      \field{series}{Monographs on Statistics and Applied Probability}
+      \field{title}{An Introduction to the Bootstrap}
+      \field{year}{1993}
     \endentry
     \entry{maaten2008tsne}{article}{}{}
       \name{author}{2}{}{%
@@ -2620,8 +2721,8 @@
       \strng{authornamehash}{ded113913329926fdb758b523055e0cd}
       \strng{authorfullhash}{84f087877817c9228768db45df0a083c}
       \strng{authorfullhashraw}{84f087877817c9228768db45df0a083c}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Biostatistics}
@@ -2711,8 +2812,8 @@
       \strng{authornamehash}{2301768ede36bc58de002d8a3ee83928}
       \strng{authorfullhash}{6ca7dd0ea24e16081bc3db1510bb9c57}
       \strng{authorfullhashraw}{6ca7dd0ea24e16081bc3db1510bb9c57}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{NeuroImage}
@@ -2776,8 +2877,8 @@
       \strng{authornamehash}{3fa59e49fbaf11dd1cb506c42df616df}
       \strng{authorfullhash}{0bad1d5d762b49d423819ed8ca70bc3c}
       \strng{authorfullhashraw}{0bad1d5d762b49d423819ed8ca70bc3c}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Journal of Machine Learning Research}
