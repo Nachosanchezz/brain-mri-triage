@@ -113,10 +113,12 @@ def plot_confusion_matrices():
         if cm is None:
             ax.set_title(f"{title}\n(sin datos)"); ax.axis("off"); continue
         im = ax.imshow(cm, cmap="Blues")
+        thresh = cm.max() / 2.0
         for i in range(2):
             for j in range(2):
+                txt_color = "white" if cm[i, j] > thresh else "black"
                 ax.text(j, i, str(cm[i, j]), ha="center", va="center",
-                        fontsize=14, color="black",
+                        fontsize=14, color=txt_color,
                         fontweight="bold")
         ax.set_xticks([0, 1]); ax.set_xticklabels(["pred sano", "pred tumor"], fontsize=8)
         ax.set_yticks([0, 1]); ax.set_yticklabels(["real sano", "real tumor"], fontsize=8)
