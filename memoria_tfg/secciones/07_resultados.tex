@@ -132,7 +132,11 @@ evaluar en BraTS+IXI (configuración B, $n=1157$)--- el AUC desciende a
 \textbf{0,2012}, con sensibilidad $0{,}0103$ y especificidad $0{,}9653$. Un AUC
 inferior a $0{,}5$ indica que la regla de decisión aprendida se \emph{invierte}
 al cambiar de cohorte: lo que el modelo asocia a «tumor» en unas fuentes lo
-asocia a «sano» en otras.
+asocia a «sano» en otras. El tamaño de los conjuntos de test cross-dataset es
+elevado ($n=1110$ y $n=1157$), de modo que el error de muestreo es despreciable
+frente a la magnitud de estos efectos y se reportan estimaciones puntuales; el
+intervalo de confianza solo resulta informativo en el régimen intra-dominio
+($n=36$).
 
 \begin{table}[ht]
   \centering
@@ -213,12 +217,21 @@ desaparece el rendimiento casi perfecto observado en el pool.
 Conviene delimitar el alcance de esta prueba. La validación BTC\_preop no debe
 interpretarse como una estimación definitiva del rendimiento clínico de una
 CNN 3D para detección tumoral ---el tamaño muestral es reducido ($n=36$), solo se
-dispone de la modalidad T1 y los intervalos de confianza son amplios---, sino como
+dispone de la modalidad T1, la cohorte incluye un subtipo tumoral (meningioma)
+ausente del entrenamiento y los intervalos de confianza son amplios---, sino como
 una prueba intra-dominio de baja potencia que permite comprobar si el rendimiento
 casi perfecto del pool se mantiene cuando se elimina la equivalencia
 clase-dataset. La conclusión, por tanto, es de alcance limitado: con estos datos
 no se observa señal robusta por encima del azar, lo que no equivale a afirmar que
-la detección sea imposible.
+la detección sea imposible. Importa subrayar dónde recae la carga de la prueba: la
+demostración del \emph{confound} no descansa en este experimento de baja potencia,
+sino en el \emph{baseline} trivial sobre el pool, que alcanza AUC $1{,}0$ sin red
+neuronal ni información anatómica; la validación intra-dominio solo confirma que ese
+rendimiento casi perfecto no sobrevive al control del dominio. Que el propio
+\emph{baseline} trivial quede también en torno al azar sobre BTC\_preop
+(AUC $0{,}5491$) descarta, además, que el colapso se deba únicamente a la dificultad
+de entrenar una red con $n=36$: tampoco un modelo lineal, sin capacidad de
+sobreajustar, encuentra señal.
 
 \section{Evidencia en el espacio latente y mapas de atención}
 \label{sec:latente}

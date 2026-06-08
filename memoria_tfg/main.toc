@@ -57,8 +57,8 @@
 \contentsline {section}{\numberline {7.3}Identificabilidad del dominio}{34}{section.7.3}%
 \contentsline {section}{\numberline {7.4}Generalización fuera de dominio LODO}{35}{section.7.4}%
 \contentsline {section}{\numberline {7.5}Validación intra-dominio BTC\_preop}{36}{section.7.5}%
-\contentsline {section}{\numberline {7.6}Evidencia en el espacio latente y mapas de atención}{36}{section.7.6}%
-\contentsline {section}{\numberline {7.7}Síntesis consolidada de resultados}{37}{section.7.7}%
+\contentsline {section}{\numberline {7.6}Evidencia en el espacio latente y mapas de atención}{37}{section.7.6}%
+\contentsline {section}{\numberline {7.7}Síntesis consolidada de resultados}{38}{section.7.7}%
 \contentsline {chapter}{\numberline {8}Discusión}{40}{chapter.8}%
 \contentsline {section}{\numberline {8.1}Interpretación: confound estructural dominio$\leftrightarrow $clase}{40}{section.8.1}%
 \contentsline {section}{\numberline {8.2}Por qué las métricas casi perfectas no son evidencia clínica}{41}{section.8.2}%
